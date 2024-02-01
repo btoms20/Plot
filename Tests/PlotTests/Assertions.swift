@@ -12,8 +12,8 @@ func assertEqualHTMLContent(
     _ content: String,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    let html = document.render()
+) async {
+    let html = await document.render()
     let expectedPrefix = "<!DOCTYPE html><html>"
     let expectedSuffix = "</html>"
 
@@ -56,10 +56,10 @@ func assertEqualSiteMapContent(
     _ content: String,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    let map = document.render()
+) async {
+    let map = await document.render()
 
-    let expectedPrefix = XML().render() + """
+    let expectedPrefix = await XML().render() + """
     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" \
     xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
     """
@@ -105,8 +105,8 @@ func assertEqualXMLContent(
     _ content: String,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    let xml = document.render()
+) async {
+    let xml = await document.render()
     let declaration = #"<?xml version="1.0" encoding="UTF-8"?>"#
 
     XCTAssertTrue(
@@ -133,8 +133,8 @@ func assertEqualPodcastFeedContent(
     _ content: String,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    assertEqualRSSFeedContent(
+) async {
+    await assertEqualRSSFeedContent(
         feed,
         content,
         type: "podcast",
@@ -154,8 +154,8 @@ func assertEqualRSSFeedContent(
     _ content: String,
     file: StaticString = #file,
     line: UInt = #line
-) {
-    assertEqualRSSFeedContent(
+) async {
+    await assertEqualRSSFeedContent(
         feed,
         content,
         type: "RSS",
@@ -175,8 +175,8 @@ private func assertEqualRSSFeedContent<R: Renderable>(
     namespaces: [(name: String, url: String)],
     file: StaticString,
     line: UInt
-) {
-    let xmlDeclaration = XML().render()
+) async {
+    let xmlDeclaration = await XML().render()
 
     let namespaces = namespaces.map({ name, url in
         "xmlns:\(name)=\"\(url)\""
@@ -185,7 +185,7 @@ private func assertEqualRSSFeedContent<R: Renderable>(
     let expectedPrefix = "\(xmlDeclaration)<rss version=\"2.0\" \(namespaces)><channel>"
     let expectedSuffix = "</channel></rss>"
 
-    let xml = feed.render()
+    let xml = await feed.render()
 
     XCTAssertTrue(
         xml.hasPrefix(expectedPrefix),

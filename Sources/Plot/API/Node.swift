@@ -15,7 +15,7 @@ import Foundation
 /// escaped or treated as raw, pre-processed text. Groups can also be
 /// created to form components.
 public struct Node<Context> {
-    private let rendering: (inout Renderer) -> Void
+    private let rendering: (inout Renderer) async -> Void
 }
 
 public extension Node {
@@ -24,20 +24,20 @@ public extension Node {
 
     /// Create a node from a raw piece of text that should be rendered as-is.
     /// - parameter text: The raw text that the node should contain.
-    static func raw(_ text: String) -> Node {
-        Node { $0.renderRawText(text) }
+    static func raw(_ text: String) async -> Node {
+        Node { await $0.renderRawText(text) }
     }
 
     /// Create a node from a piece of free-form text that should be escaped.
     /// - parameter text: The text that the node should contain.
     static func text(_ text: String) -> Node {
-        Node { $0.renderText(text) }
+        Node { await $0.renderText(text) }
     }
 
     /// Create a node representing an element
     /// - parameter element: The element that the node should contain.
     static func element(_ element: Element<Context>) -> Node {
-        Node { $0.renderElement(element) }
+        Node { await $0.renderElement(element) }
     }
 
     /// Create a custom element with a given name.
@@ -70,15 +70,15 @@ public extension Node {
     /// Create a custom element with a given name and an array of attributes.
     /// - parameter name: The name of the element to create.
     /// - parameter attributes: The attributes to add to the element.
-    static func element<C>(named name: String, attributes: [Attribute<C>]) -> Node {
-        .element(Element(name: name, nodes: attributes.map(\.node)))
+    static func element<C>(named name: String, attributes: [Attribute<C>]) async -> Node {
+        await .element(Element(name: name, nodes: attributes.asyncMap { await $0.node() }))
     }
 
     /// Create a custom element with a given name and an array of attributes.
     /// - parameter name: The name of the element to create.
     /// - parameter attributes: The attributes to add to the element.
-    static func element(named name: String, attributes: [Attribute<Context>]) -> Node {
-        .element(Element(name: name, nodes: attributes.map(\.node)))
+    static func element(named name: String, attributes: [Attribute<Context>]) async -> Node {
+        await .element(Element(name: name, nodes: attributes.asyncMap { await $0.node() }))
     }
 
     /// Create a custom self-closed element with a given name.
@@ -90,15 +90,15 @@ public extension Node {
     /// Create a custom self-closed element with a given name and an array of attributes.
     /// - parameter name: The name of the element to create.
     /// - parameter attributes: The attributes to add to the element.
-    static func selfClosedElement<C>(named name: String, attributes: [Attribute<C>]) -> Node {
-        .element(Element(name: name, closingMode: .selfClosing, nodes: attributes.map(\.node)))
+    static func selfClosedElement<C>(named name: String, attributes: [Attribute<C>]) async -> Node {
+        await .element(Element(name: name, closingMode: .selfClosing, nodes: attributes.asyncMap { await $0.node() }))
     }
 
     /// Create a custom self-closed element with a given name and an array of attributes.
     /// - parameter name: The name of the element to create.
     /// - parameter attributes: The attributes to add to the element.
-    static func selfClosedElement(named name: String, attributes: [Attribute<Context>]) -> Node {
-        .element(Element(name: name, closingMode: .selfClosing, nodes: attributes.map(\.node)))
+    static func selfClosedElement(named name: String, attributes: [Attribute<Context>]) async -> Node {
+        await .element(Element(name: name, closingMode: .selfClosing, nodes: attributes.asyncMap { await $0.node() }))
     }
 
     /// Create a node that represents an attribute.
@@ -136,7 +136,10 @@ public extension Node {
     /// - parameter members: The nodes that should be included in the group.
     static func group(_ members: [Node]) -> Node {
         Node { renderer in
-            members.forEach { $0.render(into: &renderer) }
+            for member in members {
+                await member.render(into: &renderer)
+            }
+            //members.forEach { $0.render(into: &renderer) }
         }
     }
 
@@ -149,42 +152,42 @@ public extension Node {
     /// Create a node that wraps a `Component`. You can use this API to
     /// integrate a component into a `Node`-based hierarchy.
     /// - parameter component: The component that should be wrapped.
-    static func component(_ component: Component) -> Node {
-        Node { $0.renderComponent(component) }
+    static func component(_ component: Component) async -> Node {
+        Node { await $0.renderComponent(component) }
     }
 
     /// Create a node that wraps a set of components defined within a closure. You
     /// can use this API to integrate a group of components into a `Node`-based hierarchy.
     /// - parameter content: A closure that creates a group of components.
-    static func components(@ComponentBuilder _ content: () -> Component) -> Node {
-        .component(content())
+    static func components(@ComponentBuilder _ content: () async -> Component) async -> Node {
+        await .component(content())
     }
 }
 
 internal extension Node where Context: DocumentFormat {
-    static func document(_ document: Document<Context>) -> Node {
+    static func document(_ document: Document<Context>) async -> Node {
         Node { renderer in
-            document.elements.forEach {
-                renderer.renderElement($0)
+            for element in document.elements {
+                await renderer.renderElement(element)
             }
         }
     }
 }
 
 internal extension Node where Context == Any {
-    static func modifiedComponent(_ component: ModifiedComponent) -> Node {
+    static func modifiedComponent(_ component: ModifiedComponent) async -> Node {
         Node { renderer in
-            renderer.renderComponent(component.base,
+            await renderer.renderComponent(component.base,
                 deferredAttributes: component.deferredAttributes + renderer.deferredAttributes,
                 environmentOverrides: component.environmentOverrides
             )
         }
     }
 
-    static func components(_ components: [Component]) -> Node {
+    static func components(_ components: [Component]) async -> Node {
         Node { renderer in
-            components.forEach {
-                renderer.renderComponent($0,
+            for component in components {
+                await renderer.renderComponent(component,
                     deferredAttributes: renderer.deferredAttributes
                 )
             }
@@ -194,12 +197,12 @@ internal extension Node where Context == Any {
     static func wrappingComponent(
         _ component: Component,
         using wrapper: ElementWrapper
-    ) -> Node {
+    ) async -> Node {
         Node { renderer in
             var wrapper = wrapper
             wrapper.deferredAttributes = renderer.deferredAttributes
 
-            renderer.renderComponent(component,
+            await renderer.renderComponent(component,
                 elementWrapper: wrapper
             )
         }
@@ -207,15 +210,15 @@ internal extension Node where Context == Any {
 }
 
 extension Node: NodeConvertible {
-    public var node: Self { self }
+    public func node() async -> Self { self }
 
-    public func render(indentedBy indentationKind: Indentation.Kind?) -> String {
-        Renderer.render(self, indentedBy: indentationKind)
+    public func render(indentedBy indentationKind: Indentation.Kind?) async -> String {
+        await Renderer.render(self, indentedBy: indentationKind)
     }
 }
 
 extension Node: Component {
-    public var body: Component { self }
+    public func body() async -> Component { self }
 }
 
 extension Node: ExpressibleByStringInterpolation {
@@ -225,7 +228,7 @@ extension Node: ExpressibleByStringInterpolation {
 }
 
 extension Node: AnyNode {
-    func render(into renderer: inout Renderer) {
-        rendering(&renderer)
+    func render(into renderer: inout Renderer) async {
+        await rendering(&renderer)
     }
 }

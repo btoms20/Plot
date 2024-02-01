@@ -14,8 +14,8 @@ public extension Node where Context == PodcastFeed.ItemContext {
     static func audio(url: URLRepresentable,
                       byteSize: Int,
                       type: String = "audio/mpeg",
-                      title: String) -> Node {
-        .group(
+                      title: String) async -> Node {
+        await .group(
             .enclosure(
                 .url(url),
                 .length(byteSize),

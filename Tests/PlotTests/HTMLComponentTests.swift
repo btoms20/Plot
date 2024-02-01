@@ -5,46 +5,48 @@
 */
 
 import XCTest
-import Plot
+@testable import Plot
 
 final class HTMLComponentTests: XCTestCase {
-    func testControlFlow() {
+    func testControlFlow() async {
         let string: String? = "String"
         let nilString: String? = nil
         let bool = true
         let int = 3
 
-        let html = Div {
+        let html = await Div {
             if let string = string {
-                Paragraph(string)
+                await Paragraph(string)
             }
 
             if let string = nilString {
-                Paragraph("Should not be rendered: \(string)")
+                await Paragraph("Should not be rendered: \(string)")
             }
 
             if let string = nilString {
-                Paragraph("Should not be rendered: \(string)")
+                await Paragraph("Should not be rendered: \(string)")
             } else {
-                Paragraph("Nil")
+                await Paragraph("Nil")
             }
-
-            string.map { Paragraph($0) }
-            nilString.map { Paragraph($0) }
+            
+            if let string { await Paragraph(string) }
+//            string.map { await Paragraph($0) }
+            if let nilString { await Paragraph(nilString) }
+//            nilString.map { await Paragraph($0) }
 
             for string in ["One", "Two"] {
-                Paragraph(string)
+                await Paragraph(string)
             }
 
             if bool {
-                Paragraph("True")
+                await Paragraph("True")
             }
 
             switch int {
             case 3:
-                Paragraph("Switch")
+                await Paragraph("Switch")
             default:
-                Paragraph("Should not be rendered")
+                await Paragraph("Should not be rendered")
             }
         }
         .render()
@@ -54,19 +56,19 @@ final class HTMLComponentTests: XCTestCase {
         """)
     }
 
-    func testNodeInteroperability() {
-        let html = Div {
+    func testNodeInteroperability() async {
+        let html = await Div {
             Node.p("One")
-            Node<Any>.component(Paragraph("Two"))
-            Paragraph("Three")
+            await Node<Any>.component(Paragraph("Two"))
+            await Paragraph("Three")
         }
         .render()
 
         XCTAssertEqual(html, "<div><p>One</p><p>Two</p><p>Three</p></div>")
     }
 
-    func testIDAndClassModifiers() {
-        let html = Link("Swift by Sundell",
+    func testIDAndClassModifiers() async {
+        let html = await Link("Swift by Sundell",
             url: "https://swiftbysundell.com"
         )
         .id("sxs-link")
@@ -78,16 +80,16 @@ final class HTMLComponentTests: XCTestCase {
         """)
     }
 
-    func testAssigningDirectionalityToElement() {
-        let html = Paragraph("Hello")
+    func testAssigningDirectionalityToElement() async {
+        let html = await Paragraph("Hello")
             .directionality(.leftToRight)
             .render()
 
         XCTAssertEqual(html, #"<p dir="ltr">Hello</p>"#)
     }
 
-    func testAppendingClasses() {
-        let html = Paragraph("Hello")
+    func testAppendingClasses() async {
+        let html = await Paragraph("Hello")
             .class("one")
             .class("two")
             .class("three")
@@ -96,8 +98,8 @@ final class HTMLComponentTests: XCTestCase {
         XCTAssertEqual(html, #"<p class="one two three">Hello</p>"#)
     }
 
-    func testNotAppendingEmptyClasses() {
-        let html = Paragraph("Hello")
+    func testNotAppendingEmptyClasses() async {
+        let html = await Paragraph("Hello")
             .class("")
             .class("one")
             .class("")
@@ -107,40 +109,40 @@ final class HTMLComponentTests: XCTestCase {
         XCTAssertEqual(html, #"<p class="one two">Hello</p>"#)
     }
 
-    func testAppendingClassesToWrappingComponents() {
+    func testAppendingClassesToWrappingComponents() async {
         struct InnerWrapper: Component {
-            var body: Component {
-                Paragraph("Hello").class("one")
+            func body() async -> Component {
+                await Paragraph("Hello").class("one")
             }
         }
 
         struct OuterWrapper: Component {
-            var body: Component {
+            func body() async -> Component {
                 InnerWrapper().class("two")
             }
         }
 
-        let html = OuterWrapper().class("three").render()
+        let html = await OuterWrapper().class("three").render()
         XCTAssertEqual(html, #"<p class="one two three">Hello</p>"#)
     }
 
-    func testAppendingClassToWrappingComponentContainingGroup() {
+    func testAppendingClassToWrappingComponentContainingGroup() async {
         struct Wrapper: Component {
-            var body: Component {
-                ComponentGroup {
-                    Paragraph("One")
-                    Paragraph("Two")
+            func body() async -> Component {
+                await ComponentGroup {
+                    await Paragraph("One")
+                    await Paragraph("Two")
                 }
                 .class("one")
             }
         }
 
-        let html = Wrapper().class("two").render()
+        let html = await Wrapper().class("two").render()
         XCTAssertEqual(html, #"<p class="one two">One</p><p class="one two">Two</p>"#)
     }
 
-    func testReplacingClass() {
-        let html = Paragraph("Hello")
+    func testReplacingClass() async {
+        let html = await Paragraph("Hello")
             .class("one")
             .class("two")
             .class("three", replaceExisting: true)
@@ -149,10 +151,10 @@ final class HTMLComponentTests: XCTestCase {
         XCTAssertEqual(html, #"<p class="three">Hello</p>"#)
     }
 
-    func testAddingClassToMultipleComponents() {
-        let html = ComponentGroup {
-            Div()
-            Div()
+    func testAddingClassToMultipleComponents() async {
+        let html = await ComponentGroup {
+            await Div()
+            await Div()
         }
         .class("hello")
         .render()
@@ -160,13 +162,13 @@ final class HTMLComponentTests: XCTestCase {
         XCTAssertEqual(html, #"<div class="hello"></div><div class="hello"></div>"#)
     }
 
-    func testAddingClassToNode() {
-        let html = Node.div(.p()).class("hello").render()
+    func testAddingClassToNode() async {
+        let html = await Node.div(.p()).class("hello").render()
         XCTAssertEqual(html, #"<div class="hello"><p></p></div>"#)
     }
 
-    func testEnvironmentValuesDoNotApplyToSiblings() {
-        let html = Div {
+    func testEnvironmentValuesDoNotApplyToSiblings() async {
+        let html = await Div {
             Link("One", url: "/one")
                 .linkTarget(.blank)
             Link("Two", url: "/two")
@@ -184,8 +186,8 @@ final class HTMLComponentTests: XCTestCase {
         """)
     }
 
-    func testApplyingEnvironmentValuesToTopLevelHTML() {
-        let html = HTML(
+    func testApplyingEnvironmentValuesToTopLevelHTML() async {
+        let html = await HTML(
             .body {
                 Link("One", url: "/one")
                 Link("Two", url: "/two")
@@ -193,7 +195,7 @@ final class HTMLComponentTests: XCTestCase {
         )
         .environmentValue(.nofollow, key: .linkRelationship)
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <a href="/one" rel="nofollow">One</a>\
         <a href="/two" rel="nofollow">Two</a>\
@@ -201,24 +203,24 @@ final class HTMLComponentTests: XCTestCase {
         """)
     }
 
-    func testUsingCustomEnvironmentKey() {
+    func testUsingCustomEnvironmentKey() async {
         struct TestComponent: Component {
             @EnvironmentValue(.init(identifier: "key")) var value: String?
 
-            var body: Component {
-                Paragraph(value ?? "No value")
+            func body() async -> Component {
+                await Paragraph(value ?? "No value")
             }
         }
 
-        let html = TestComponent()
+        let html = await TestComponent()
             .environmentValue("Value", key: .init(identifier: "key"))
             .render()
 
         XCTAssertEqual(html, "<p>Value</p>")
     }
 
-    func testApplyingTextStyles() {
-        let html = Div {
+    func testApplyingTextStyles() async {
+        let html = await Div {
             Text("Bold")
                 .bold()
                 .addLineBreak()
@@ -244,62 +246,63 @@ final class HTMLComponentTests: XCTestCase {
         """)
     }
 
-    func testTextConcatenation() {
+    func testTextConcatenation() async {
         let text = Text("One") + Text(" ") + Text("Two").bold()
-        XCTAssertEqual(text.render(), "One <b>Two</b>")
+        let rendered = await text.render()
+        XCTAssertEqual(rendered, "One <b>Two</b>")
     }
 
-    func testApplyingAccessibilityLabel() {
-        let html = Paragraph("Text")
+    func testApplyingAccessibilityLabel() async {
+        let html = await Paragraph("Text")
             .accessibilityLabel("Label")
             .render()
 
         XCTAssertEqual(html, #"<p aria-label="Label">Text</p>"#)
     }
 
-    func testApplyingDataAttribute() {
-        let html = Paragraph("Text")
+    func testApplyingDataAttribute() async {
+        let html = await Paragraph("Text")
             .data(named: "test", value: "value")
             .render()
 
         XCTAssertEqual(html, #"<p data-test="value">Text</p>"#)
     }
 
-    func testApplyingStyleAttribute() {
-        let html = Paragraph("Text")
+    func testApplyingStyleAttribute() async {
+        let html = await Paragraph("Text")
             .style("color: #000;")
             .render()
 
         XCTAssertEqual(html, #"<p style="color: #000;">Text</p>"#)
     }
 
-    func testElementBasedComponents() {
-        let html = HTML {
-            Article("Article")
-            Button("Button")
-            Details("Details")
-            Div("Div")
-            FieldSet("FieldSet")
-            Footer("Footer")
-            H1("H1")
-            H2("H2")
-            H3("H3")
-            H4("H4")
-            H5("H5")
-            H6("H6")
-            Header("Header")
-            ListItem("ListItem")
-            Main("Main")
-            Navigation("Navigation")
-            Paragraph("Paragraph")
-            Span("Span")
-            Summary("Summary")
-            TableCaption("TableCaption")
-            TableCell("TableCell")
-            TableHeaderCell("TableHeaderCell")
+    func testElementBasedComponents() async {
+        let html = await HTML {
+            await Article("Article")
+            await Button("Button")
+            await Details("Details")
+            await Div("Div")
+            await FieldSet("FieldSet")
+            await Footer("Footer")
+            await H1("H1")
+            await H2("H2")
+            await H3("H3")
+            await H4("H4")
+            await H5("H5")
+            await H6("H6")
+            await Header("Header")
+            await ListItem("ListItem")
+            await Main("Main")
+            await Navigation("Navigation")
+            await Paragraph("Paragraph")
+            await Span("Span")
+            await Summary("Summary")
+            await TableCaption("TableCaption")
+            await TableCell("TableCell")
+            await TableHeaderCell("TableHeaderCell")
         }
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <article>Article</article>\
         <button>Button</button>\
@@ -327,14 +330,14 @@ final class HTMLComponentTests: XCTestCase {
         """)
     }
 
-    func testAudioPlayer() {
-        let html = HTML {
+    func testAudioPlayer() async {
+        let html = await HTML {
             AudioPlayer(source: .mp3(at: "a.mp3"), showControls: false)
             AudioPlayer(source: .wav(at: "b.wav"), showControls: true)
             AudioPlayer(source: .ogg(at: "c.ogg"), showControls: false)
         }
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <audio><source type="audio/mpeg" src="a.mp3"/></audio>\
         <audio controls><source type="audio/wav" src="b.wav"/></audio>\
@@ -343,8 +346,8 @@ final class HTMLComponentTests: XCTestCase {
         """)
     }
 
-    func testForm() {
-        let html = Form(
+    func testForm() async {
+        let html = await Form(
             url: "url.com",
             method: .post,
             content: {
@@ -390,8 +393,8 @@ final class HTMLComponentTests: XCTestCase {
         """)
     }
 
-    func testIFrame() {
-        let html = IFrame(
+    func testIFrame() async {
+        let html = await IFrame(
             url: "url.com",
             addBorder: false,
             allowFullScreen: true,
@@ -404,18 +407,18 @@ final class HTMLComponentTests: XCTestCase {
         """)
     }
 
-    func testImageWithDescription() {
-        let html = Image(url: "image.png", description: "My image").render()
+    func testImageWithDescription() async {
+        let html = await Image(url: "image.png", description: "My image").render()
         XCTAssertEqual(html, #"<img src="image.png" alt="My image"/>"#)
     }
 
-    func testImageWithoutDescription() {
-        let html = Image("image.png").render()
+    func testImageWithoutDescription() async {
+        let html = await Image("image.png").render()
         XCTAssertEqual(html, #"<img src="image.png"/>"#)
     }
 
-    func testLinkRelationshipAndTarget() {
-        let html = Div {
+    func testLinkRelationshipAndTarget() async {
+        let html = await Div {
             Link("First", url: "/first")
             Link("Second", url: "/second")
                 .linkRelationship(.noreferrer)
@@ -433,42 +436,42 @@ final class HTMLComponentTests: XCTestCase {
         """)
     }
 
-    func testOrderedList() {
-        let html = List(["One", "Two"])
+    func testOrderedList() async {
+        let html = await List(["One", "Two"])
             .listStyle(.ordered)
             .render()
 
         XCTAssertEqual(html, "<ol><li>One</li><li>Two</li></ol>")
     }
     
-    func testTime() {
-        let html = Time(datetime: "2011-11-18T14:54:39Z") {
-            Paragraph("Hello World")
+    func testTime() async {
+        let html = await Time(datetime: "2011-11-18T14:54:39Z") {
+            await Paragraph("Hello World")
         }
         .render()
         
         XCTAssertEqual(html, #"<time datetime="2011-11-18T14:54:39Z"><p>Hello World</p></time>"#)
     }
 
-    func testOrderedListWithExplicitItems() {
+    func testOrderedListWithExplicitItems() async {
         struct SeventhComponent: Component {
-            var body: Component { ListItem("Seven") }
+            func body() async -> Component { await ListItem("Seven") }
         }
 
         let bool = true
 
-        let html = List {
-            ListItem("One").number(1)
+        let html = await List {
+            await ListItem("One").number(1)
             Text("Two")
 
             if bool {
-                Paragraph("Three").class("three")
+                await Paragraph("Three").class("three")
             }
 
-            ListItem("Four").class("four")
+            await ListItem("Four").class("four")
 
             for string in ["Five", "Six"] {
-                ListItem(string)
+                await ListItem(string)
             }
 
             SeventhComponent()
@@ -499,8 +502,8 @@ final class HTMLComponentTests: XCTestCase {
         """)
     }
 
-    func testOrderedListWithEmptyComponent() {
-        let html = List {
+    func testOrderedListWithEmptyComponent() async {
+        let html = await List {
             Text("Hello")
             EmptyComponent()
         }
@@ -510,14 +513,14 @@ final class HTMLComponentTests: XCTestCase {
         XCTAssertEqual(html, "<ol><li>Hello</li></ol>")
     }
 
-    func testUnorderedList() {
-        let html = List(["One", "Two"]).render()
+    func testUnorderedList() async {
+        let html = await List(["One", "Two"]).render()
         XCTAssertEqual(html, "<ul><li>One</li><li>Two</li></ul>")
     }
 
-    func testUnorderedListWithCustomItemClass() {
-        let html = List([1, 2]) { number in
-            Paragraph(String(number))
+    func testUnorderedListWithCustomItemClass() async {
+        let html = await List([1, 2]) { number in
+            await Paragraph(String(number))
         }
         .listStyle(.unordered.withItemClass("item"))
         .render()
@@ -530,20 +533,20 @@ final class HTMLComponentTests: XCTestCase {
         """)
     }
 
-    func testUngroupedTable() {
-        let html = Table {
+    func testUngroupedTable() async {
+        let html = await Table {
             Text("Row one")
             TableRow {
-                TableCell("Row two, cell one")
-                TableCell("Row two, cell two")
+                await TableCell("Row two, cell one")
+                await TableCell("Row two, cell two")
             }
 
-            ComponentGroup {
+            await ComponentGroup {
                 TableRow {
                     Text("Row three, cell one")
                     Text("Row three, cell two")
                 }
-                TableCell("Row four")
+                await TableCell("Row four")
             }
         }
         .render()
@@ -558,24 +561,24 @@ final class HTMLComponentTests: XCTestCase {
         """)
     }
 
-    func testGroupedTable() {
-        let html = Table(
+    func testGroupedTable() async {
+        let html = await Table(
             caption: TableCaption("Caption"),
             header: TableRow { Text("Header") },
             footer: TableRow { Text("Footer") },
             rows: {
                 Text("Row one")
                 TableRow {
-                    TableCell("Row two, cell one")
-                    TableCell("Row two, cell two")
+                    await TableCell("Row two, cell one")
+                    await TableCell("Row two, cell two")
                 }
 
-                ComponentGroup {
+                await ComponentGroup {
                     TableRow {
                         Text("Row three, cell one")
                         Text("Row three, cell two")
                     }
-                    TableCell("Row four")
+                    await TableCell("Row four")
                 }
             }
         )

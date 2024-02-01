@@ -11,7 +11,7 @@ import Foundation
 public extension Element where Context == SiteMap.RootContext {
     /// Add a `<urlset>` element within the current context.
     /// - parameter nodes: The element's attributes and child elements.
-    static func urlset(_ nodes: Node<SiteMap.URLSetContext>...) -> Element {
+    static func urlset(_ nodes: Node<SiteMap.URLSetContext>...) async -> Element {
         let attributes: [Attribute<SiteMap.URLSetContext>] = [
             Attribute(
                 name: "xmlns",
@@ -23,9 +23,9 @@ public extension Element where Context == SiteMap.RootContext {
             )
         ]
 
-        return Element(
+        return await Element(
             name: "urlset",
-            nodes: attributes.map(\.node) + nodes
+            nodes: attributes.asyncMap { await $0.node() } + nodes
         )
     }
 }

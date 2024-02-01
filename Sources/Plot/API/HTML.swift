@@ -35,8 +35,8 @@ public extension HTML {
     /// - parameter body: A closure that defines a set of components that
     ///   should be placed within this HTML document's `<body>` element.
     init(head: [Node<HTML.HeadContext>] = [],
-         @ComponentBuilder body: @escaping () -> Component) {
-        self.init(
+         @ComponentBuilder body: @escaping () async -> Component) async {
+        await self.init(
             .if(!head.isEmpty, .head(.group(head))),
             .body(body)
         )
@@ -52,7 +52,7 @@ public extension HTML {
     /// - parameter key: The key to associate the value wth. You can either use any
     ///   of the built-in key definitions that Plot ships with, or define your own.
     ///   See `EnvironmentKey` for more information.
-    func environmentValue<T>(_ value: T, key: EnvironmentKey<T>) -> HTML {
+    func environmentValue<T>(_ value: T, key: EnvironmentKey<T>) async -> HTML {
         var html = self
         html.environmentOverrides.append(.init(key: key, value: value))
         return html
@@ -60,13 +60,13 @@ public extension HTML {
 }
 
 extension HTML: NodeConvertible {
-    public var node: Node<Self> {
+    public func node() async -> Node<Self> {
         if environmentOverrides.isEmpty {
-            return document.node
+            return await document.node()
         }
 
-        return ModifiedComponent(
-            base: document.node,
+        return await ModifiedComponent(
+            base: document.node(),
             environmentOverrides: environmentOverrides
         )
         .convertToNode()

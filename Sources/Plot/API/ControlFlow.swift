@@ -33,6 +33,16 @@ public extension Node {
                           else fallbackNode: Node = .empty) rethrows -> Node {
         try optional.map(transform) ?? fallbackNode
     }
+    
+    static func unwrap<T>(_ optional: T?,
+                          _ transform: (T) async throws -> Node,
+                          else fallbackNode: Node = .empty) async rethrows -> Node {
+        if let optional {
+            return try await transform(optional)
+        } else {
+            return fallbackNode
+        }
+    }
 
     /// Transform any sequence of values into a group of nodes, by applying a
     /// transform to each element.
@@ -41,6 +51,11 @@ public extension Node {
     static func forEach<S: Sequence>(_ sequence: S,
                                      _ transform: (S.Element) throws -> Node) rethrows -> Node {
         try .group(sequence.map(transform))
+    }
+    
+    static func asyncForEach<S: Sequence>(_ sequence: S,
+                                     _ transform: (S.Element) async throws -> Node) async rethrows -> Node {
+        try await .group(sequence.asyncMap(transform))
     }
 }
 

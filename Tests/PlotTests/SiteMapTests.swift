@@ -8,22 +8,22 @@ import XCTest
 import Plot
 
 final class SiteMapTests: XCTestCase {
-    func testEmptyMap() {
-        let map = SiteMap()
-        assertEqualSiteMapContent(map, "")
+    func testEmptyMap() async {
+        let map = await SiteMap()
+        await assertEqualSiteMapContent(map, "")
     }
 
-    func testDailyUpdatedLocation() throws {
+    func testDailyUpdatedLocation() async throws {
         let dateStubs = try Date.makeStubs(withFormattingStyle: .siteMap)
 
-        let map = SiteMap(.url(
+        let map = await SiteMap(.url(
             .loc("url.com"),
             .changefreq(.daily),
             .priority(1.0),
             .lastmod(dateStubs.date, timeZone: dateStubs.timeZone)
         ))
 
-        assertEqualSiteMapContent(map, """
+        await assertEqualSiteMapContent(map, """
         <url>\
         <loc>url.com</loc>\
         <changefreq>daily</changefreq>\
@@ -33,17 +33,17 @@ final class SiteMapTests: XCTestCase {
         """)
     }
 
-    func testMonthlyUpdatedLocation() throws {
+    func testMonthlyUpdatedLocation() async throws {
         let dateStubs = try Date.makeStubs(withFormattingStyle: .siteMap)
 
-        let map = SiteMap(.url(
+        let map = await SiteMap(.url(
             .loc("url.com"),
             .changefreq(.monthly),
             .priority(1.0),
             .lastmod(dateStubs.date, timeZone: dateStubs.timeZone)
         ))
 
-        assertEqualSiteMapContent(map, """
+        await assertEqualSiteMapContent(map, """
         <url>\
         <loc>url.com</loc>\
         <changefreq>monthly</changefreq>\

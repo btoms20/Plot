@@ -13,5 +13,5 @@ import Foundation
 public struct EmptyComponent: Component {
     /// Initialize an empty component.
     public init() {}
-    public var body: Component { Node<Any>.empty }
+    public func body() async -> Component { Node<Any>.empty }
 }

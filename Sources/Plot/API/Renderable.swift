@@ -15,10 +15,10 @@ public protocol Renderable {
     /// Render this object into a string, optionally with a certain kind of indentation.
     /// - parameter indentationKind: What kind of indentation that should be used
     ///   when rendering. Passing `nil` will result in a minified, unindented output string.
-    func render(indentedBy indentationKind: Indentation.Kind?) -> String
+    func render(indentedBy indentationKind: Indentation.Kind?) async -> String
 }
 
 public extension Renderable {
     /// Render this object into a minified string, without any indentation.
-    func render() -> String { render(indentedBy: nil) }
+    func render() async -> String { await render(indentedBy: nil) }
 }

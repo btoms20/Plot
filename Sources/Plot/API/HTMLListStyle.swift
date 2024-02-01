@@ -18,14 +18,14 @@ import Foundation
 public struct HTMLListStyle {
     /// Closure type that's used to wrap an item within a `List` into
     /// a renderable component.
-    public typealias ItemWrapper = (Component) -> Component
+    public typealias ItemWrapper = (Component) async -> Component
 
     /// The name of the element that should be used to render a list
     /// styled with this style.
     public var elementName: String
     /// A closure that's used to wrap each list item into a renderable
     /// component.
-    public var itemWrapper: (Component) -> Component
+    public var itemWrapper: (Component) async -> Component
 
     /// Create a new, custom list style.
     /// - parameter elementName: The name of the element that should be
@@ -46,7 +46,7 @@ public extension HTMLListStyle {
     /// The default `ItemWrapper` closure that's used for all built-in `ListStyle`
     /// variants, and also acts as the default when creating custom ones. Wraps each
     /// item into an `<li>` element, if needed.
-    static let defaultItemWrapper: ItemWrapper = { $0.wrappedInElement(named: "li") }
+    static let defaultItemWrapper: ItemWrapper = { await $0.wrappedInElement(named: "li") }
     /// List style that renders each `List` as unordered, using the `<ul>` element.
     static var unordered: Self { HTMLListStyle(elementName: "ul") }
     /// List style that renders each `List` as ordered, using the `<ol>` element.
@@ -63,9 +63,9 @@ public extension HTMLListStyle {
     /// - parameter modifier: The modifier closure to apply. Will recieve each
     ///   wrapped item (after it's been passed to the style's `itemWrapper`),
     ///   and is expected to return a new, transformed component.
-    func modifyingItems(with modifier: @escaping (Component) -> Component) -> Self {
+    func modifyingItems(with modifier: @escaping (Component) async -> Component) -> Self {
         var style = self
-        style.itemWrapper = { modifier(itemWrapper($0)) }
+        style.itemWrapper = { await modifier(itemWrapper($0)) }
         return style
     }
 }

@@ -19,9 +19,9 @@ extension Renderer {
     static func render(
         _ node: AnyNode,
         indentedBy indentationKind: Indentation.Kind?
-    ) -> String {
+    ) async -> String {
         var renderer = Renderer(indentationKind: indentationKind)
-        node.render(into: &renderer)
+        await node.render(into: &renderer)
         return renderer.result
     }
 
@@ -30,24 +30,24 @@ extension Renderer {
         self.environment = Environment()
     }
 
-    mutating func renderRawText(_ text: String) {
-        renderRawText(text, isPlainText: true, wrapIfNeeded: true)
+    mutating func renderRawText(_ text: String) async {
+        await renderRawText(text, isPlainText: true, wrapIfNeeded: true)
     }
 
-    mutating func renderText(_ text: String) {
-        renderRawText(text.escaped())
+    mutating func renderText(_ text: String) async {
+        await renderRawText(text.escaped())
     }
 
-    mutating func renderElement<T>(_ element: Element<T>) {
+    mutating func renderElement<T>(_ element: Element<T>) async {
         if let wrapper = elementWrapper {
             guard element.name == wrapper.wrappingElementName else {
                 if deferredAttributes.isEmpty {
-                    return renderComponent(
+                    return await renderComponent(
                         wrapper.body(Node.element(element)),
                         deferredAttributes: wrapper.deferredAttributes
                     )
                 } else {
-                    return renderComponent(
+                    return await renderComponent(
                         wrapper.body(ModifiedComponent(
                             base: Node.element(element),
                             deferredAttributes: deferredAttributes
@@ -67,16 +67,16 @@ extension Renderer {
             environment: environment,
             elementBuffer: buffer
         )
-
-        element.nodes.forEach {
-            $0.render(into: &renderer)
+        
+        for node in element.nodes {
+            await node.render(into: &renderer)
         }
 
         deferredAttributes.forEach(buffer.add)
         elementBuffer?.containsChildElements = true
         containsElement = true
 
-        renderRawText(buffer.flush(),
+        await renderRawText(buffer.flush(),
             isPlainText: false,
             wrapIfNeeded: false
         )
@@ -95,7 +95,7 @@ extension Renderer {
         deferredAttributes: [AnyAttribute] = [],
         environmentOverrides: [Environment.Override] = [],
         elementWrapper: ElementWrapper? = nil
-    ) {
+    ) async {
         var environment = self.environment
         environmentOverrides.forEach { $0.apply(to: &environment) }
 
@@ -117,15 +117,15 @@ extension Renderer {
         )
 
         if let node = component as? AnyNode {
-            node.render(into: &renderer)
+            await node.render(into: &renderer)
         } else {
-            renderer.renderComponent(component.body,
+            await renderer.renderComponent(await component.body(),
                 deferredAttributes: deferredAttributes,
                 elementWrapper: elementWrapper ?? self.elementWrapper
             )
         }
 
-        renderRawText(renderer.result,
+        await renderRawText(renderer.result,
             isPlainText: !renderer.containsElement,
             wrapIfNeeded: false
         )
@@ -139,10 +139,10 @@ private extension Renderer {
         _ text: String,
         isPlainText: Bool,
         wrapIfNeeded: Bool
-    ) {
+    ) async {
         if wrapIfNeeded {
             if let wrapper = elementWrapper {
-                return renderComponent(wrapper.body(Node<Any>.raw(text)))
+                return await renderComponent(wrapper.body(Node<Any>.raw(text)))
             }
         }
 

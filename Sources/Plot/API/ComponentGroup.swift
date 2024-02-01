@@ -17,8 +17,10 @@ import Foundation
 public struct ComponentGroup: Component {
     /// The group's members. Will be rendered in order.
     public var members: [Component]
-    public var body: Component { Node.components(members) }
-
+    public func body() async -> Component {
+        await Node.components(members)
+    }
+    
     /// Create a new group with a given set of member components.
     /// - parameter members: The components that should be included
     ///   within the group. Will be rendered in order.
@@ -28,8 +30,8 @@ public struct ComponentGroup: Component {
 }
 
 extension ComponentGroup: ComponentContainer {
-    public init(@ComponentBuilder content: () -> Self) {
-        self = content()
+    public init(@ComponentBuilder content: @escaping () async -> Self) async {
+        self = await content()
     }
 }
 

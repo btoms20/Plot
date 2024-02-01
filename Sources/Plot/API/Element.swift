@@ -36,22 +36,23 @@ public extension Element {
     /// - parameter name: The name of the element to create.
     /// - parameter attributes The attributes to add to the element.
     static func selfClosed(named name: String,
-                           attributes: [Attribute<Any>]) -> Element {
-        Element(name: name, closingMode: .selfClosing, nodes: attributes.map(\.node))
+                           attributes: [Attribute<Any>]) async -> Element {
+        await Element(name: name, closingMode: .selfClosing, nodes: attributes.asyncMap { await $0.node() })
     }
 }
 
 extension Element: NodeConvertible {
-    public var node: Node<Context> { .element(self) }
+    public func node() async -> Node<Context> { .element(self) }
 }
 
 extension Element: Component where Context == Any {
-    public var body: Component { node }
+    //public var body: Component { node }
+    public func body() async -> Component { await node() }
 
     public init(
         name: String,
         @ComponentBuilder content: @escaping ContentProvider
-    ) {
-        self.init(name: name, nodes: [Node<Any>.component(content())])
+    ) async {
+        await self.init(name: name, nodes: [Node<Any>.component(await content())])
     }
 }

@@ -9,8 +9,8 @@
 public extension Node where Context: HTMLContext {
     /// Add an HTML comment within the current context.
     /// - parameter text: The comment's text.
-    static func comment(_ text: String) -> Node {
-        .group(.raw("<!--"), .text(text), .raw("-->"))
+    static func comment(_ text: String) async -> Node {
+        await .group(.raw("<!--"), .text(text), .raw("-->"))
     }
 }
 
@@ -60,8 +60,8 @@ public extension Node where Context == HTML.DocumentContext {
     /// with a set of components.
     /// - parameter content: A closure that creates the components that
     ///   should make up this element's content.
-    static func body(@ComponentBuilder _ content: @escaping () -> Component) -> Node {
-        .body(.component(content()))
+    static func body(@ComponentBuilder _ content: @escaping () async -> Component) async -> Node {
+        await .body(.component(content()))
     }
 }
 
@@ -70,20 +70,20 @@ public extension Node where Context == HTML.DocumentContext {
 public extension Node where Context == HTML.HeadContext {
     /// Add a `<link/>` HTML element within the current context.
     /// - parameter attributes: The element's attributes.
-    static func link(_ attributes: Attribute<HTML.LinkContext>...) -> Node {
-        .selfClosedElement(named: "link", attributes: attributes)
+    static func link(_ attributes: Attribute<HTML.LinkContext>...) async -> Node {
+        await .selfClosedElement(named: "link", attributes: attributes)
     }
 
     /// Add a `<meta/>` HTML element within the current context.
     /// - parameter attributes: The element's attributes.
-    static func meta(_ attributes: Attribute<HTML.MetaContext>...) -> Node {
-        .selfClosedElement(named: "meta", attributes: attributes)
+    static func meta(_ attributes: Attribute<HTML.MetaContext>...) async -> Node {
+        await .selfClosedElement(named: "meta", attributes: attributes)
     }
 
     /// Add a `<style>` HTML element within the current context.
     /// - parameter css: The CSS code that the element should contain.
-    static func style(_ css: String) -> Node {
-        .element(named: "style", nodes: [.raw(css)])
+    static func style(_ css: String) async -> Node {
+        await .element(named: "style", nodes: [.raw(css)])
     }
 }
 
@@ -187,8 +187,8 @@ public extension Node where Context: HTML.BodyContext {
 
     /// Add an `<embed/>` HTML element within the current context.
     /// - parameter attribues: The element's attributes.
-    static func embed(_ attributes: Attribute<HTML.EmbedContext>...) -> Node {
-        .selfClosedElement(named: "embed", attributes: attributes)
+    static func embed(_ attributes: Attribute<HTML.EmbedContext>...) async -> Node {
+        await .selfClosedElement(named: "embed", attributes: attributes)
     }
 
     /// Add a `<fieldset>` HTML element within the current context.
@@ -253,8 +253,8 @@ public extension Node where Context: HTML.BodyContext {
 
     /// Add a `<hr/>` HTML element within the current context.
     /// - parameter attributes: The element's attributes.
-    static func hr(_ attributes: Attribute<HTML.BodyContext>...) -> Node {
-        .selfClosedElement(named: "hr", attributes: attributes)
+    static func hr(_ attributes: Attribute<HTML.BodyContext>...) async -> Node {
+        await .selfClosedElement(named: "hr", attributes: attributes)
     }
 
     /// Add an `<i>` HTML element within the current context.
@@ -265,14 +265,14 @@ public extension Node where Context: HTML.BodyContext {
 
     /// Add an `<iframe>` HTML element within the current context.
     /// - parameter attributes: The element's attributes.
-    static func iframe(_ attributes: Attribute<HTML.IFrameContext>...) -> Node {
-        .element(named: "iframe", attributes: attributes)
+    static func iframe(_ attributes: Attribute<HTML.IFrameContext>...) async -> Node {
+        await .element(named: "iframe", attributes: attributes)
     }
 
     /// Add an `<input/>` HTML element within the current context.
     /// - parameter nodes: The element's attributes.
-    static func input(_ attributes: Attribute<HTML.InputContext>...) -> Node {
-        .selfClosedElement(named: "input", attributes: attributes)
+    static func input(_ attributes: Attribute<HTML.InputContext>...) async -> Node {
+        await .selfClosedElement(named: "input", attributes: attributes)
     }
 
     /// Add an `<ins>` HTML element within the current context.
@@ -435,8 +435,8 @@ public extension Node where Context == HTML.DescriptionListContext {
 public extension Node where Context: HTMLOptionListContext {
     /// Add an `<option>` HTML element within the current context.
     /// - parameter nodes: The element's attributes.
-    static func option(_ attributes: Attribute<HTML.OptionContext>...) -> Node {
-        .selfClosedElement(named: "option", attributes: attributes)
+    static func option(_ attributes: Attribute<HTML.OptionContext>...) async -> Node {
+        await .selfClosedElement(named: "option", attributes: attributes)
     }
 }
 
@@ -493,16 +493,16 @@ public extension Node where Context == HTML.TableRowContext {
 public extension Node where Context: HTMLImageContainerContext {
     /// Add an `<img/>` HTML element within the current context.
     /// - parameter attributes: The element's attributes.
-    static func img(_ attributes: Attribute<HTML.ImageContext>...) -> Node {
-        .selfClosedElement(named: "img", attributes: attributes)
+    static func img(_ attributes: Attribute<HTML.ImageContext>...) async -> Node {
+        await .selfClosedElement(named: "img", attributes: attributes)
     }
 }
 
 public extension Node where Context: HTMLSourceListContext {
     /// Add a `<source/>` HTML element within the current context.
     /// - parameter attributes: The element's attributes.
-    static func source(_ attributes: Attribute<Context.SourceContext>...) -> Node {
-        .selfClosedElement(named: "source", attributes: attributes)
+    static func source(_ attributes: Attribute<Context.SourceContext>...) async -> Node {
+        await .selfClosedElement(named: "source", attributes: attributes)
     }
 }
 

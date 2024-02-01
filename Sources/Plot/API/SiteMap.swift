@@ -18,8 +18,8 @@ public struct SiteMap: DocumentFormat {
     /// URL definition within the site map.
     /// - parameter nodes: The root nodes of the document, which will
     /// be placed inside of a `<urlset>` element.
-    public init(_ nodes: Node<SiteMap.URLSetContext>...) {
-        document = Document(elements: [
+    public init(_ nodes: Node<SiteMap.URLSetContext>...) async {
+        document = await Document(elements: [
             .xml(.version(1.0), .encoding(.utf8)),
             .urlset(.group(nodes))
         ])
@@ -27,7 +27,7 @@ public struct SiteMap: DocumentFormat {
 }
 
 extension SiteMap: NodeConvertible {
-    public var node: Node<Self> { document.node }
+    public func node() async -> Node<Self> { await document.node() }
 }
 
 public extension SiteMap {

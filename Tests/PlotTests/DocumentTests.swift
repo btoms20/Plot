@@ -8,18 +8,20 @@ import XCTest
 import Plot
 
 final class DocumentTests: XCTestCase {
-    func testEmptyDocument() {
+    func testEmptyDocument() async {
         let document = Document<FormatStub>.custom()
-        XCTAssertEqual(document.render(), "")
+        let rendered = await document.render()
+        XCTAssertEqual(rendered, "")
     }
 
-    func testEmptyIndentedDocument() {
+    func testEmptyIndentedDocument() async {
         let document = Document<FormatStub>.custom()
-        XCTAssertEqual(document.render(indentedBy: .spaces(4)), "")
+        let rendered = await document.render(indentedBy: .spaces(4))
+        XCTAssertEqual(rendered, "")
     }
 
-    func testIndentationWithSpaces() {
-        let document = Document.custom(
+    func testIndentationWithSpaces() async {
+        let document = await Document.custom(
             withFormat: FormatStub.self,
             elements: [
                 .named("one", nodes: [
@@ -41,7 +43,8 @@ final class DocumentTests: XCTestCase {
             ]
         )
 
-        XCTAssertEqual(document.render(indentedBy: .spaces(4)), """
+        let rendered = await document.render(indentedBy: .spaces(4))
+        XCTAssertEqual(rendered, """
         <one>
             <two>
                 <three/>
@@ -53,8 +56,8 @@ final class DocumentTests: XCTestCase {
         """)
     }
 
-    func testIndentationWithTabs() {
-        let document = Document.custom(
+    func testIndentationWithTabs() async {
+        let document = await Document.custom(
             withFormat: FormatStub.self,
             elements: [
                 .named("one", nodes: [
@@ -69,7 +72,8 @@ final class DocumentTests: XCTestCase {
             ]
         )
 
-        XCTAssertEqual(document.render(indentedBy: .tabs(1)), """
+        let rendered = await document.render(indentedBy: .tabs(1))
+        XCTAssertEqual(rendered, """
         <one>
         \t<two>
         \t\t<three/>
