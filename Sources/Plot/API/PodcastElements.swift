@@ -66,8 +66,8 @@ public extension Node where Context: PodcastContentContext {
 
     /// Associate an image with the content.
     /// - parameter url: The URL of the content's image.
-    static func image(_ url: URLRepresentable) -> Node {
-        .selfClosedElement(
+    static func image(_ url: URLRepresentable) async -> Node {
+        await .selfClosedElement(
             named: "itunes:image",
             attributes: [.any(name: "href", value: url.string)]
         )
@@ -159,8 +159,8 @@ public extension Node where Context == PodcastFeed.ItemContext {
 
     /// Define an enclosure for the episode's media files.
     /// - parameter attributes: The element's attributes.
-    static func enclosure(_ attributes: Attribute<PodcastFeed.EnclosureContext>...) -> Node {
-        .selfClosedElement(named: "enclosure", attributes: attributes)
+    static func enclosure(_ attributes: Attribute<PodcastFeed.EnclosureContext>...) async -> Node {
+        await .selfClosedElement(named: "enclosure", attributes: attributes)
     }
 
     /// Define the episode's media content metadata.

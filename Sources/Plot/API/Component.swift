@@ -25,7 +25,7 @@ public protocol Component: Renderable {
     /// The underlying component that should be used to render this component.
     /// Can either be a `Node`, another `Component`, or a group of components
     /// created using the `ComponentGroup` type.
-    var body: Component { get }
+    func body() async -> Component
 }
 
 public extension Component {
@@ -33,7 +33,7 @@ public extension Component {
     /// given component. Closures of this type are typically marked with the
     /// `@ComponentBuilder` attribute to enable Plot's DSL to be used when
     /// implementing them.
-    typealias ContentProvider = () -> ComponentGroup
+    typealias ContentProvider = () async -> ComponentGroup
 
     /// Add an attribute to the HTML element used to render this component.
     /// - parameter name: The name of the attribute to add.
@@ -108,37 +108,68 @@ public extension Component {
     /// using this component.
     /// - parameter context: The context of the returned node (can typically be
     ///   inferred by the compiler based on the call site).
-    func convertToNode<T>(withContext context: T.Type = T.self) -> Node<T> {
-        .component(self)
+    func convertToNode<T>(withContext context: T.Type = T.self) async -> Node<T> {
+        await .component(self)
     }
 
-    func render(indentedBy indentationKind: Indentation.Kind?) -> String {
+    func render(indentedBy indentationKind: Indentation.Kind?) async -> String {
         var renderer = Renderer(indentationKind: indentationKind)
-        renderer.renderComponent(self)
+        await renderer.renderComponent(self)
         return renderer.result
     }
 }
 
 internal extension Component {
-    func wrappedInElement(named wrappingElementName: String) -> Component {
-        wrapped(using: ElementWrapper(
+    func wrappedInElement(named wrappingElementName: String) async -> Component {
+        await wrapped(using: ElementWrapper(
             wrappingElementName: wrappingElementName
         ))
     }
 
-    func wrapped(using wrapper: ElementWrapper) -> Component {
+    func wrapped(using wrapper: ElementWrapper) async -> Component {
         guard !(self is EmptyComponent) else {
             return self
         }
 
         if let group = self as? ComponentGroup {
-            return ComponentGroup(
-                members: group.members.map {
-                    $0.wrapped(using: wrapper)
+            
+            return await ComponentGroup(
+                members: group.members.asyncMap {
+                    await $0.wrapped(using: wrapper)
                 }
             )
         }
 
-        return Node.wrappingComponent(self, using: wrapper)
+        return await Node.wrappingComponent(self, using: wrapper)
+    }
+}
+
+extension Sequence {
+    public func asyncMap<T>(
+        _ transform: (Element) async throws -> T
+    ) async rethrows -> [T] {
+        var values = [T]()
+
+        for element in self {
+            try await values.append(transform(element))
+        }
+
+        return values
+    }
+}
+
+extension Sequence {
+    public func asyncCompactMap<T>(
+        _ transform: (Element) async throws -> T?
+    ) async rethrows -> [T] {
+        var values = [T]()
+
+        for element in self {
+            if let val = try await transform(element) {
+                values.append(val)
+            }
+        }
+
+        return values
     }
 }

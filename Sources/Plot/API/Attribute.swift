@@ -59,7 +59,7 @@ internal extension Attribute where Context == Any {
 }
 
 extension Attribute: NodeConvertible {
-    public var node: Node<Context> { .attribute(self) }
+    public func node() async -> Node<Context> { .attribute(self) }
 }
 
 extension Attribute: AnyAttribute {

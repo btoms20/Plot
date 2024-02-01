@@ -17,8 +17,8 @@ public struct PodcastFeed: RSSBasedDocumentFormat {
     /// using the `.item()` API.
     /// - parameter nodes: The nodes that make up the podcast's
     ///   episodes. Will be placed within a `<channel>` element.
-    public init(_ nodes: Node<ChannelContext>...) {
-        document = .feed(
+    public init(_ nodes: Node<ChannelContext>...) async {
+        document = await .feed(
             .namespace("itunes", "http://www.itunes.com/dtds/podcast-1.0.dtd"),
             .namespace("media", "http://www.rssboard.org/media-rss"),
             .channel(.group(nodes))
@@ -27,7 +27,7 @@ public struct PodcastFeed: RSSBasedDocumentFormat {
 }
 
 extension PodcastFeed: NodeConvertible {
-    public var node: Node<Self> { document.node }
+    public func node() async -> Node<Self> { await document.node() }
 }
 
 public extension PodcastFeed {

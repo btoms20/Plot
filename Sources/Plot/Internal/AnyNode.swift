@@ -5,5 +5,5 @@
 */
 
 internal protocol AnyNode {
-    func render(into renderer: inout Renderer)
+    func render(into renderer: inout Renderer) async
 }

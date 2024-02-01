@@ -23,13 +23,13 @@ public struct RSS: RSSBasedDocumentFormat {
     /// API.
     /// - parameter nodes: The nodes that make up the feed's items.
     ///   Will be placed within a `<channel>` element.
-    public init(_ nodes: Node<ChannelContext>...) {
-        document = .feed(.channel(.group(nodes)))
+    public init(_ nodes: Node<ChannelContext>...) async {
+        document = await .feed(.channel(.group(nodes)))
     }
 }
 
 extension RSS: NodeConvertible {
-    public var node: Node<Self> { document.node }
+    public func node() async -> Node<Self> { await document.node() }
 }
 
 public extension RSS {
@@ -81,8 +81,8 @@ internal extension RSS {
 }
 
 internal extension Document where Format: RSSBasedDocumentFormat {
-    static func feed(_ nodes: Node<Format.FeedContext>...) -> Document {
-        Document(elements: [
+    static func feed(_ nodes: Node<Format.FeedContext>...) async -> Document {
+        await Document(elements: [
             .xml(.version(1.0), .encoding(.utf8)),
             .rss(
                 .version(2.0),

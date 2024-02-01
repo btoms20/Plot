@@ -8,68 +8,72 @@ import XCTest
 import Plot
 
 final class HTMLTests: XCTestCase {
-    func testEmptyHTML() {
-        assertEqualHTMLContent(HTML(), "")
+    func testEmptyHTML() async {
+        await assertEqualHTMLContent(HTML(), "")
     }
 
-    func testPageLanguage() {
+    func testPageLanguage() async {
         let html = HTML(.lang(.english))
-        XCTAssertEqual(html.render(), #"<!DOCTYPE html><html lang="en"></html>"#)
+        let rendered = await html.render()
+        XCTAssertEqual(rendered, #"<!DOCTYPE html><html lang="en"></html>"#)
     }
 
-    func testPageDirectionalityLeftToRight() {
+    func testPageDirectionalityLeftToRight() async {
         let html = HTML(.dir(.leftToRight))
-        XCTAssertEqual(html.render(), #"<!DOCTYPE html><html dir="ltr"></html>"#)
+        let rendered = await html.render()
+        XCTAssertEqual(rendered, #"<!DOCTYPE html><html dir="ltr"></html>"#)
     }
 
-    func testPageDirectionalityRightToLeft() {
+    func testPageDirectionalityRightToLeft() async {
         let html = HTML(.dir(.rightToLeft))
-        XCTAssertEqual(html.render(), #"<!DOCTYPE html><html dir="rtl"></html>"#)
+        let rendered = await html.render()
+        XCTAssertEqual(rendered, #"<!DOCTYPE html><html dir="rtl"></html>"#)
     }
 
-    func testPageDirectionalityAuto() {
+    func testPageDirectionalityAuto() async {
         let html = HTML(.dir(.auto))
-        XCTAssertEqual(html.render(), #"<!DOCTYPE html><html dir="auto"></html>"#)
+        let rendered = await html.render()
+        XCTAssertEqual(rendered, #"<!DOCTYPE html><html dir="auto"></html>"#)
     }
 
-    func testHeadAndBody() {
+    func testHeadAndBody() async {
         let html = HTML(.head(), .body())
-        assertEqualHTMLContent(html, "<head></head><body></body>")
+        await assertEqualHTMLContent(html, "<head></head><body></body>")
     }
 
-    func testDocumentEncoding() {
-        let html = HTML(.head(.encoding(.utf8)))
-        assertEqualHTMLContent(html, #"<head><meta charset="UTF-8"/></head>"#)
+    func testDocumentEncoding() async {
+        let html = await HTML(.head(.encoding(.utf8)))
+        await assertEqualHTMLContent(html, #"<head><meta charset="UTF-8"/></head>"#)
     }
 
-    func testCSSStylesheet() {
-        let html = HTML(.head(.stylesheet("styles.css")))
-        assertEqualHTMLContent(html, """
+    func testCSSStylesheet() async {
+        let html = await HTML(.head(.stylesheet("styles.css")))
+        await assertEqualHTMLContent(html, """
         <head><link rel="stylesheet" href="styles.css" type="text/css"/></head>
         """)
     }
 
-    func testInlineCSS() {
-        let html = HTML(
+    func testInlineCSS() async {
+        let html = await HTML(
             .head(.style("body { color: #000; }")),
             .body(.style("color: #fff;"))
         )
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <head><style>body { color: #000; }</style></head><body style="color: #fff;"></body>
         """)
     }
 
-    func testSiteName() {
-        let html = HTML(.head(.siteName("MySite")))
-        assertEqualHTMLContent(html, """
+    func testSiteName() async {
+        let html = await HTML(.head(.siteName("MySite")))
+        await assertEqualHTMLContent(html, """
         <head><meta property="og:site_name" content="MySite"/></head>
         """)
     }
 
-    func testPageURL() {
-        let html = HTML(.head(.url("url.com")))
-        assertEqualHTMLContent(html, """
+    func testPageURL() async {
+        let html = await HTML(.head(.url("url.com")))
+        await assertEqualHTMLContent(html, """
         <head>\
         <link rel="canonical" href="url.com"/>\
         <meta name="twitter:url" content="url.com"/>\
@@ -78,9 +82,9 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testPageTitle() {
-        let html = HTML(.head(.title("Title")))
-        assertEqualHTMLContent(html, """
+    func testPageTitle() async {
+        let html = await HTML(.head(.title("Title")))
+        await assertEqualHTMLContent(html, """
         <head>\
         <title>Title</title>\
         <meta name="twitter:title" content="Title"/>\
@@ -89,9 +93,9 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testPageDescription() {
-        let html = HTML(.head(.description("Description")))
-        assertEqualHTMLContent(html, """
+    func testPageDescription() async {
+        let html = await HTML(.head(.description("Description")))
+        await assertEqualHTMLContent(html, """
         <head>\
         <meta name="description" content="Description"/>\
         <meta name="twitter:description" content="Description"/>\
@@ -100,14 +104,14 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testSocialImageMetadata() {
-        let html = HTML(.head(
+    func testSocialImageMetadata() async {
+        let html = await HTML(.head(
             .socialImageLink("url.png"),
             .twitterCardType(.summaryLargeImage),
             .twitterUsername("@CreatorHandle")
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <head>\
         <meta name="twitter:image" content="url.png"/>\
         <meta property="og:image" content="url.png"/>\
@@ -117,137 +121,137 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testResponsiveViewport() {
-        let html = HTML(.head(.viewport(.accordingToDevice)))
-        assertEqualHTMLContent(html, """
+    func testResponsiveViewport() async {
+        let html = await HTML(.head(.viewport(.accordingToDevice)))
+        await assertEqualHTMLContent(html, """
         <head><meta name="viewport" content="width=device-width, initial-scale=1.0"/></head>
         """)
     }
 
-    func testStaticViewport() {
-        let html = HTML(.head(.viewport(.constant(500))))
-        assertEqualHTMLContent(html, """
+    func testStaticViewport() async {
+        let html = await HTML(.head(.viewport(.constant(500))))
+        await assertEqualHTMLContent(html, """
         <head><meta name="viewport" content="width=500, initial-scale=1.0"/></head>
         """)
     }
     
-    func testViewportFit() {
-        let html = HTML(.head(.viewport(.accordingToDevice, fit: .cover)))
-        assertEqualHTMLContent(html, """
+    func testViewportFit() async {
+        let html = await HTML(.head(.viewport(.accordingToDevice, fit: .cover)))
+        await assertEqualHTMLContent(html, """
         <head><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/></head>
         """)
     }
 
-    func testFavicon() {
-        let html = HTML(.head(.favicon("icon.png")))
-        assertEqualHTMLContent(html, """
+    func testFavicon() async {
+        let html = await HTML(.head(.favicon("icon.png")))
+        await assertEqualHTMLContent(html, """
         <head><link rel="shortcut icon" href="icon.png" type="image/png"/></head>
         """)
     }
 
-    func testRSSFeedLink() {
-        let html = HTML(.head(.rssFeedLink("feed.rss", title: "RSS")))
-        assertEqualHTMLContent(html, """
+    func testRSSFeedLink() async {
+        let html = await HTML(.head(.rssFeedLink("feed.rss", title: "RSS")))
+        await assertEqualHTMLContent(html, """
         <head><link rel="alternate" href="feed.rss" type="application/rss+xml" title="RSS"/></head>
         """)
     }
 
-    func testLinkWithHrefLang() {
-        let html = HTML(.head(.link(
+    func testLinkWithHrefLang() async {
+        let html = await HTML(.head(.link(
             .rel(.alternate),
             .href("http://site/"),
             .hreflang(.english)
         )))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <head><link rel="alternate" href="http://site/" hreflang="en"/></head>
         """)
     }
 
-    func testAppleTouchIconLink() {
-        let html = HTML(.head(.link(
+    func testAppleTouchIconLink() async {
+        let html = await HTML(.head(.link(
             .rel(.appleTouchIcon),
             .sizes("180x180"),
             .href("apple-touch-icon.png")
         )))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <head><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"/></head>
         """)
     }
 
-    func testCrossoriginLinkEnabled() {
-        let html = HTML(.head(.link(
+    func testCrossoriginLinkEnabled() async {
+        let html = await HTML(.head(.link(
             .rel(.preconnect),
             .href("https://foo.com"),
             .crossorigin(true)
         )))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <head><link rel="preconnect" href="https://foo.com" crossorigin/></head>
         """)
     }
 
-    func testCrossoriginLinkDisabled() {
-        let html = HTML(.head(.link(
+    func testCrossoriginLinkDisabled() async {
+        let html = await HTML(.head(.link(
             .rel(.preconnect),
             .href("https://foo.com"),
             .crossorigin(false)
         )))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <head><link rel="preconnect" href="https://foo.com"/></head>
         """)
     }
 
-    func testManifestLink() {
-        let html = HTML(.head(.link(
+    func testManifestLink() async {
+        let html = await HTML(.head(.link(
             .rel(.manifest),
             .href("site.webmanifest")
         )))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <head><link rel="manifest" href="site.webmanifest"/></head>
         """)
     }
 
-    func testMaskIconLink() {
-        let html = HTML(.head(.link(
+    func testMaskIconLink() async {
+        let html = await HTML(.head(.link(
             .rel(.maskIcon),
             .href("safari-pinned-tab.svg"),
             .color("#000000")
         )))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <head><link rel="mask-icon" href="safari-pinned-tab.svg" color="#000000"/></head>
         """)
     }
 
-    func testBodyWithID() {
+    func testBodyWithID() async {
         let html = HTML(.body(.id("anID")))
-        assertEqualHTMLContent(html, #"<body id="anID"></body>"#)
+        await assertEqualHTMLContent(html, #"<body id="anID"></body>"#)
     }
 
-    func testBodyWithCSSClass() {
+    func testBodyWithCSSClass() async {
         let html = HTML(.body(.class("myClass")))
-        assertEqualHTMLContent(html, #"<body class="myClass"></body>"#)
+        await assertEqualHTMLContent(html, #"<body class="myClass"></body>"#)
     }
 
-    func testOverridingBodyCSSClass() {
+    func testOverridingBodyCSSClass() async {
         let html = HTML(.body(.class("a"), .class("b")))
-        assertEqualHTMLContent(html, #"<body class="b"></body>"#)
+        await assertEqualHTMLContent(html, #"<body class="b"></body>"#)
     }
 
-    func testHiddenElements() {
+    func testHiddenElements() async {
         let html = HTML(.body(
             .div(.hidden(false)),
             .div(.hidden(true))
         ))
-        assertEqualHTMLContent(html, "<body><div></div><div hidden></div></body>")
+        await assertEqualHTMLContent(html, "<body><div></div><div hidden></div></body>")
     }
 
-    func testTitleAttribute() {
-        let html = HTML(
+    func testTitleAttribute() async {
+        let html = await HTML(
             .head(
                 .link(
                     .rel(.alternate),
@@ -263,7 +267,7 @@ final class HTMLTests: XCTestCase {
             )
         )
         
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <head>\
         <link rel="alternate" title="Alternative representation"/>\
         </head>\
@@ -276,28 +280,28 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testUnorderedList() {
+    func testUnorderedList() async {
         let html = HTML(.body(.ul(.li("Text"))))
-        assertEqualHTMLContent(html, "<body><ul><li>Text</li></ul></body>")
+        await assertEqualHTMLContent(html, "<body><ul><li>Text</li></ul></body>")
     }
 
-    func testOrderedList() {
+    func testOrderedList() async {
         let html = HTML(.body(.ol(.li(.span("Text")))))
-        assertEqualHTMLContent(html, "<body><ol><li><span>Text</span></li></ol></body>")
+        await assertEqualHTMLContent(html, "<body><ol><li><span>Text</span></li></ol></body>")
     }
 
-    func testDescriptionList() {
+    func testDescriptionList() async {
         let html = HTML(.body(.dl(
             .dt("Term"),
             .dd("Description")
         )))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body><dl><dt>Term</dt><dd>Description</dd></dl></body>
         """)
     }
     
-    func testDescriptionListWithDiv() {
+    func testDescriptionListWithDiv() async {
         let html = HTML(.body(.dl(
             .div(
                 .dt("Last modified time"),
@@ -315,59 +319,59 @@ final class HTMLTests: XCTestCase {
             )
         )))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body><dl><div><dt>Last modified time</dt><dd>2004-12-23T23:33Z</dd></div><div><dt>Recommended update interval</dt><dd>60s</dd></div><div><dt>Authors</dt><dt>Editors</dt><dd>Robert Rothman</dd><dd>Daniel Jackson</dd></div></dl></body>
         """)
     }
 
-    func testTextDirectionalityLeftToRight() {
+    func testTextDirectionalityLeftToRight() async {
         let html = HTML(.body(
             .h1(.dir(.leftToRight), "Text")
         ))
 
-        assertEqualHTMLContent(html, #"<body><h1 dir="ltr">Text</h1></body>"#)
+        await assertEqualHTMLContent(html, #"<body><h1 dir="ltr">Text</h1></body>"#)
     }
 
-    func testTextDirectionalityRightToLeft() {
+    func testTextDirectionalityRightToLeft() async {
         let html = HTML(.body(
             .h1(.dir(.rightToLeft), "Text")
         ))
 
-        assertEqualHTMLContent(html, #"<body><h1 dir="rtl">Text</h1></body>"#)
+        await assertEqualHTMLContent(html, #"<body><h1 dir="rtl">Text</h1></body>"#)
     }
 
-    func testTextDirectionalityAuto() {
+    func testTextDirectionalityAuto() async {
         let html = HTML(.body(
             .h1(.dir(.auto), "Text")
         ))
 
-        assertEqualHTMLContent(html, #"<body><h1 dir="auto">Text</h1></body>"#)
+        await assertEqualHTMLContent(html, #"<body><h1 dir="auto">Text</h1></body>"#)
     }
 
-    func testInputDirectionalityAuto() {
-        let html = HTML(.body(
+    func testInputDirectionalityAuto() async {
+        let html = await HTML(.body(
             .input(.dir(.auto))
         ))
 
-        assertEqualHTMLContent(html, #"<body><input dir="auto"/></body>"#)
+        await assertEqualHTMLContent(html, #"<body><input dir="auto"/></body>"#)
     }
 
-    func testTextAreaDirectionalityLeftToRight() {
+    func testTextAreaDirectionalityLeftToRight() async {
         let html = HTML(.body(
             .textarea(.dir(.auto))
         ))
 
-        assertEqualHTMLContent(html, #"<body><textarea dir="auto"></textarea></body>"#)
+        await assertEqualHTMLContent(html, #"<body><textarea dir="auto"></textarea></body>"#)
     }
 
-    func testAnchors() throws {
+    func testAnchors() async throws {
         let html = try HTML(.body(
             .a(.href("a.html"), .target(.blank), .text("A")),
             .a(.href("b.html"), .rel(.nofollow), .text("B")),
             .a(.href(require(URL(string: "c.html"))), .text("C"))
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <a href="a.html" target="_blank">A</a>\
         <a href="b.html" rel="nofollow">B</a>\
@@ -376,7 +380,7 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testTable() {
+    func testTable() async {
         let html = HTML(.body(
             .table(
                 .caption("Caption"),
@@ -385,7 +389,7 @@ final class HTMLTests: XCTestCase {
             )
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body><table>\
         <caption>Caption</caption>\
         <tr><th>Hello</th></tr>\
@@ -394,7 +398,7 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testTableGroupingSemantics() {
+    func testTableGroupingSemantics() async {
         let html = HTML(
             .body(
                 .table(
@@ -424,7 +428,7 @@ final class HTMLTests: XCTestCase {
             )
         )
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body><table>\
         <thead><tr><th>Column1</th><th>Column2</th></tr></thead>\
         <tbody><tr><td>Body1</td><td>Body2</td></tr>\
@@ -434,16 +438,16 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testData() {
+    func testData() async {
         let html = HTML(.body(
             .data(.value("123"), .text("Hello"))
         ))
 
-        assertEqualHTMLContent(html, #"<body><data value="123">Hello</data></body>"#)
+        await assertEqualHTMLContent(html, #"<body><data value="123">Hello</data></body>"#)
     }
 
-    func testEmbeddedObject() {
-        let html = HTML(.body(
+    func testEmbeddedObject() async {
+        let html = await HTML(.body(
             .embed(
                 .src("url"),
                 .type("some/type"),
@@ -452,13 +456,13 @@ final class HTMLTests: XCTestCase {
             )
         ))
 
-        assertEqualHTMLContent(html, #"""
+        await assertEqualHTMLContent(html, #"""
         <body><embed src="url" type="some/type" width="500" height="300"/></body>
         """#)
     }
 
-    func testForm() {
-        let html = HTML(.body(
+    func testForm() async {
+        let html = await HTML(.body(
             .form(
                 .action("url.com"),
                 .fieldset(
@@ -478,7 +482,7 @@ final class HTMLTests: XCTestCase {
             )
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body><form action="url.com">\
         <fieldset>\
         <label for="a">A label</label>\
@@ -498,14 +502,14 @@ final class HTMLTests: XCTestCase {
         """)
     }
     
-    func testFormContentType() {
+    func testFormContentType() async {
         let html = HTML(.body(
             .form(.enctype(.urlEncoded)),
             .form(.enctype(.multipartData)),
             .form(.enctype(.plainText))
         ))
         
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <form enctype="application/x-www-form-urlencoded"></form>\
         <form enctype="multipart/form-data"></form>\
@@ -514,13 +518,13 @@ final class HTMLTests: XCTestCase {
         """)
     }
     
-    func testFormMethod() {
+    func testFormMethod() async {
         let html = HTML(.body(
             .form(.method(.get)),
             .form(.method(.post))
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <form method="get"></form>\
         <form method="post"></form>\
@@ -528,20 +532,20 @@ final class HTMLTests: XCTestCase {
         """)
     }
     
-    func testFormNoValidate() {
+    func testFormNoValidate() async {
         let html = HTML(.body(
             .form(.novalidate())
         ))
         
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <form novalidate></form>\
         </body>
         """)
     }
 
-    func testFormWithBodyNodes() {
-        let html = HTML(.body(
+    func testFormWithBodyNodes() async {
+        let html = await HTML(.body(
             .form(
                 .method(.post),
                 .div(
@@ -555,14 +559,14 @@ final class HTMLTests: XCTestCase {
             )
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body><form method="post"><div class="wrapper">\
         <p>Text</p><input type="submit" value="Action"/>\
         </div></form></body>
         """)
     }
     
-    func testHeadings() {
+    func testHeadings() async {
         let html = HTML(.body(
             .h1("One"),
             .h2("Two"),
@@ -572,7 +576,7 @@ final class HTMLTests: XCTestCase {
             .h6("Six")
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <h1>One</h1>\
         <h2>Two</h2>\
@@ -584,13 +588,13 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testParagraph() {
+    func testParagraph() async {
         let html = HTML(.body(.p("Text")))
-        assertEqualHTMLContent(html, "<body><p>Text</p></body>")
+        await assertEqualHTMLContent(html, "<body><p>Text</p></body>")
     }
 
-    func testImage() {
-        let html = HTML(.body(
+    func testImage() async {
+        let html = await HTML(.body(
             .img(
                 .id("id"),
                 .class("image"),
@@ -601,19 +605,19 @@ final class HTMLTests: XCTestCase {
             )
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body><img id="id" class="image" src="image.png" alt="Text" width="44" height="44"/></body>
         """)
     }
 
-    func testAudioPlayer() {
-        let html = HTML(.body(
+    func testAudioPlayer() async {
+        let html = await HTML(.body(
             .audio(.source(.src("a.mp3"), .type(.mp3))),
             .audio(.controls(true), .source(.src("b.wav"), .type(.wav))),
             .audio(.controls(false), .source(.src("c.ogg"), .type(.ogg)))
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <audio><source src="a.mp3" type="audio/mpeg"/></audio>\
         <audio controls><source src="b.wav" type="audio/wav"/></audio>\
@@ -622,14 +626,14 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testVideoPlayer() {
-        let html = HTML(.body(
+    func testVideoPlayer() async {
+        let html = await HTML(.body(
             .video(.source(.src("a.mp4"), .type(.mp4))),
             .video(.controls(true), .source(.src("b.webm"), .type(.webM))),
             .video(.controls(false), .source(.src("c.ogg"), .type(.ogg)))
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <video><source src="a.mp4" type="video/mp4"/></video>\
         <video controls><source src="b.webm" type="video/webm"/></video>\
@@ -638,7 +642,7 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testArticle() {
+    func testArticle() async {
         let html = HTML(.body(
             .article(
                 .header(.h1("Title")),
@@ -647,7 +651,7 @@ final class HTMLTests: XCTestCase {
             )
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body><article>\
         <header><h1>Title</h1></header>\
         <p>Body</p>\
@@ -656,13 +660,13 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testCode() {
+    func testCode() async {
         let html = HTML(.body(
             .p(.code("hello()")),
             .pre(.code("world()"))
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <p><code>hello()</code></p>\
         <pre><code>world()</code></pre>\
@@ -670,7 +674,7 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testTextStyling() {
+    func testTextStyling() async {
         let html = HTML(.body(
             .b("Bold"),
             .strong("Bold"),
@@ -683,7 +687,7 @@ final class HTMLTests: XCTestCase {
             .small("Small")
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <b>Bold</b>\
         <strong>Bold</strong>\
@@ -698,8 +702,8 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testIFrame() {
-        let html = HTML(.body(
+    func testIFrame() async {
+        let html = await HTML(.body(
             .iframe(
                 .src("url.com"),
                 .frameborder(false),
@@ -711,7 +715,7 @@ final class HTMLTests: XCTestCase {
             )
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <iframe src="url.com" frameborder="0" allow="gyroscope"></iframe>\
         <iframe allowfullscreen></iframe>\
@@ -719,7 +723,7 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testJavaScript() {
+    func testJavaScript() async {
         let html = HTML(
             .head(
                 .script(.src("script.js")),
@@ -729,7 +733,7 @@ final class HTMLTests: XCTestCase {
             .body(.script(#"console.log("Consider going JS-free :)")"#))
         )
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <head><script src="script.js"></script>\
         <script async src="async.js"></script>\
         <script defer src="deferred.js"></script></head>\
@@ -737,13 +741,13 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testButton() {
+    func testButton() async {
         let html = HTML(.body(
             .button(.type(.button), .name("Name"), .value("Value"), .text("Text")),
             .button(.type(.submit), .text("Submit"))
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <button type="button" name="Name" value="Value">Text</button>\
         <button type="submit">Submit</button>\
@@ -751,23 +755,23 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testAbbreviation() {
+    func testAbbreviation() async {
         let html = HTML(.body(
             .abbr(.title("HyperText Markup Language"), "HTML")
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body><abbr title="HyperText Markup Language">HTML</abbr></body>
         """)
     }
 
-    func testBlockquote() {
+    func testBlockquote() async {
         let html = HTML(.body(.blockquote("Quote")))
-        assertEqualHTMLContent(html, "<body><blockquote>Quote</blockquote></body>")
+        await assertEqualHTMLContent(html, "<body><blockquote>Quote</blockquote></body>")
     }
 
-    func testListsOfOptions() {
-        let html = HTML(.body(
+    func testListsOfOptions() async {
+        let html = await HTML(.body(
             .datalist(
                 .option(.value("A")),
                 .option(.value("B"))
@@ -778,7 +782,7 @@ final class HTMLTests: XCTestCase {
             )
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <datalist><option value="A"/><option value="B"/></datalist>\
         <select><option value="C" selected/><option value="D" label="Dee"/></select>\
@@ -786,13 +790,13 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testDetails() {
+    func testDetails() async {
         let html = HTML(.body(
             .details(.open(true), .summary("Open Summary"), .p("Text")),
             .details(.open(false), .summary("Closed Summary"), .p("Text"))
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <details open><summary>Open Summary</summary><p>Text</p></details>\
         <details><summary>Closed Summary</summary><p>Text</p></details>\
@@ -800,83 +804,83 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testLineBreak() {
+    func testLineBreak() async {
         let html = HTML(.body("One", .br(), "Two"))
-        assertEqualHTMLContent(html, "<body>One<br/>Two</body>")
+        await assertEqualHTMLContent(html, "<body>One<br/>Two</body>")
     }
 
-    func testHorizontalLine() {
-        let html = HTML(.body("One", .hr(), "Two"))
-        assertEqualHTMLContent(html, "<body>One<hr/>Two</body>")
+    func testHorizontalLine() async {
+        let html = await HTML(.body("One", .hr(), "Two"))
+        await assertEqualHTMLContent(html, "<body>One<hr/>Two</body>")
     }
 
-    func testHorizontalLineAttributes() {
-        let html = HTML(.body("One", .hr(.class("alternate")), "Two"))
-        assertEqualHTMLContent(html, #"<body>One<hr class="alternate"/>Two</body>"#)
+    func testHorizontalLineAttributes() async {
+        let html = await HTML(.body("One", .hr(.class("alternate")), "Two"))
+        await assertEqualHTMLContent(html, #"<body>One<hr class="alternate"/>Two</body>"#)
     }
 
-    func testNoScript() {
+    func testNoScript() async {
         let html = HTML(.body(.noscript("NoScript")))
-        assertEqualHTMLContent(html, "<body><noscript>NoScript</noscript></body>")
+        await assertEqualHTMLContent(html, "<body><noscript>NoScript</noscript></body>")
     }
 
-    func testNavigation() {
+    func testNavigation() async {
         let html = HTML(.body(.nav("Navigation")))
-        assertEqualHTMLContent(html, "<body><nav>Navigation</nav></body>")
+        await assertEqualHTMLContent(html, "<body><nav>Navigation</nav></body>")
     }
 
-    func testSection() {
+    func testSection() async {
         let html = HTML(.body(.section("Section")))
-        assertEqualHTMLContent(html, "<body><section>Section</section></body>")
+        await assertEqualHTMLContent(html, "<body><section>Section</section></body>")
     }
 
-    func testAside() {
+    func testAside() async {
         let html = HTML(.body(.aside("Aside")))
-        assertEqualHTMLContent(html, "<body><aside>Aside</aside></body>")
+        await assertEqualHTMLContent(html, "<body><aside>Aside</aside></body>")
     }
 
-    func testMain() {
+    func testMain() async {
         let html = HTML(.body(.main("Main")))
-        assertEqualHTMLContent(html, "<body><main>Main</main></body>")
+        await assertEqualHTMLContent(html, "<body><main>Main</main></body>")
     }
 
-    func testAccessibilityLabel() {
+    func testAccessibilityLabel() async {
         let html = HTML(.body(.button(.text("X"), .ariaLabel("Close"))))
-        assertEqualHTMLContent(html, #"<body><button aria-label="Close">X</button></body>"#)
+        await assertEqualHTMLContent(html, #"<body><button aria-label="Close">X</button></body>"#)
     }
     
-    func testAccessibilityControls() {
+    func testAccessibilityControls() async {
         let html = HTML(.body(.ul(.li(.id("list"), .ariaControls("div"))), .div(.id("div"))))
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body>\
         <ul><li id="list" aria-controls="div"></li></ul><div id="div"></div>\
         </body>
         """)
     }
     
-    func testAccessibilityExpanded() {
+    func testAccessibilityExpanded() async {
         let html = HTML(.body(.a(.ariaExpanded(true))))
-        assertEqualHTMLContent(html, #"<body><a aria-expanded="true"></a></body>"#)
+        await assertEqualHTMLContent(html, #"<body><a aria-expanded="true"></a></body>"#)
     }
     
-    func testAccessibilityHidden() {
+    func testAccessibilityHidden() async {
         let html = HTML(.body(.a(.ariaHidden(true))))
-        assertEqualHTMLContent(html, #"<body><a aria-hidden="true"></a></body>"#)
+        await assertEqualHTMLContent(html, #"<body><a aria-hidden="true"></a></body>"#)
     }
 
-    func testDataAttributes() {
-        let html = HTML(.body(
+    func testDataAttributes() async {
+        let html = await HTML(.body(
             .data(named: "user-name", value: "John"),
             .img(.data(named: "icon", value: "User"))
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body data-user-name="John"><img data-icon="User"/></body>
         """)
     }
 
-    func testSpellcheckAttribute() {
-        let html = HTML(
+    func testSpellcheckAttribute() async {
+        let html = await HTML(
             .body(
                 .spellcheck(true),
                 .form(
@@ -885,7 +889,7 @@ final class HTMLTests: XCTestCase {
                 )
             )
         )
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
             <body spellcheck="true">\
             <form>\
             <input type="text" spellcheck="false"/>\
@@ -895,14 +899,14 @@ final class HTMLTests: XCTestCase {
             """)
     }
     
-    func testSubresourceIntegrity() {
-        let html = HTML(.head(
+    func testSubresourceIntegrity() async {
+        let html = await HTML(.head(
             .script(.src("file.js"), .integrity("sha384-fakeHash")),
             .link(.rel(.stylesheet), .href("styles.css"), .type("text/css"), .integrity("sha512-fakeHash")),
             .stylesheet("styles2.css", integrity: "sha256-fakeHash")
         ))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <head><script src="file.js" integrity="sha384-fakeHash"></script>\
         <link rel="stylesheet" href="styles.css" type="text/css" integrity="sha512-fakeHash"/>\
         <link rel="stylesheet" href="styles2.css" type="text/css" integrity="sha256-fakeHash"/>\
@@ -910,13 +914,13 @@ final class HTMLTests: XCTestCase {
         """)
     }
 
-    func testComments() {
-        let html = HTML(.comment("Hello"), .body(.comment("World")))
-        assertEqualHTMLContent(html, "<!--Hello--><body><!--World--></body>")
+    func testComments() async {
+        let html = await HTML(.comment("Hello"), .body(.comment("World")))
+        await assertEqualHTMLContent(html, "<!--Hello--><body><!--World--></body>")
     }
 
-    func testPicture() {
-        let html = HTML(.body(.picture(
+    func testPicture() async {
+        let html = await HTML(.body(.picture(
             .source(
                 .srcset("dark.jpg"),
                 .media("(prefers-color-scheme: dark)")
@@ -924,7 +928,7 @@ final class HTMLTests: XCTestCase {
             .img(.src("default.jpg"))
         )))
 
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body><picture>\
         <source srcset="dark.jpg" media="(prefers-color-scheme: dark)"/>\
         <img src="default.jpg"/>\
@@ -932,20 +936,20 @@ final class HTMLTests: XCTestCase {
         """)
     }
     
-    func testTime() {
+    func testTime() async {
         let html = HTML(.body(.time(
             .text("Hello World!"),
             .datetime("2011-11-18T14:54:39Z")
         )))
         
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body><time datetime="2011-11-18T14:54:39Z">\
         Hello World!\
         </time></body>
         """)
     }
                                
-    func testObject() {
+    func testObject() async {
         let html = HTML(.body(.object(
             .data("vector.svg"),
             .attribute(.type("image/svg+xml")),
@@ -953,12 +957,12 @@ final class HTMLTests: XCTestCase {
             .attribute(.height(100))
         )))
         
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body><object data="vector.svg" type="image/svg+xml" width="200" height="100"></object></body>
         """)
     }
 
-    func testOnClick() {
+    func testOnClick() async {
         let html = HTML(
             .body(
                 .div(
@@ -966,7 +970,7 @@ final class HTMLTests: XCTestCase {
                 )
             )
         )
-        assertEqualHTMLContent(html, """
+        await assertEqualHTMLContent(html, """
         <body><div onclick="javascript:alert('Hello World')"></div></body>
         """)
     }

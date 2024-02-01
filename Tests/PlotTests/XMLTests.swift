@@ -8,39 +8,39 @@ import XCTest
 import Plot
 
 final class XMLTests: XCTestCase {
-    func testEmptyXML() {
-        assertEqualXMLContent(XML(), "")
+    func testEmptyXML() async {
+        await assertEqualXMLContent(XML(), "")
     }
 
-    func testSingleElement() {
-        let xml = XML(.element(named: "hello", text: "world!"))
-        assertEqualXMLContent(xml, "<hello>world!</hello>")
+    func testSingleElement() async {
+        let xml = await XML(.element(named: "hello", text: "world!"))
+        await assertEqualXMLContent(xml, "<hello>world!</hello>")
     }
 
-    func testSelfClosingElement() {
-        let xml = XML(.selfClosedElement(named: "element"))
-        assertEqualXMLContent(xml, "<element/>")
+    func testSelfClosingElement() async {
+        let xml = await XML(.selfClosedElement(named: "element"))
+        await assertEqualXMLContent(xml, "<element/>")
     }
 
-    func testElementWithAttribute() {
-        let xml = XML(.element(
+    func testElementWithAttribute() async {
+        let xml = await XML(.element(
             named: "element",
             nodes: [
                 .attribute(named: "attribute", value: "value")
             ]
         ))
 
-        assertEqualXMLContent(xml, #"<element attribute="value"></element>"#)
+        await assertEqualXMLContent(xml, #"<element attribute="value"></element>"#)
     }
 
-    func testElementWithChildren() {
-        let xml = XML(
+    func testElementWithChildren() async {
+        let xml = await XML(
             .element(named: "parent", nodes: [
                 .selfClosedElement(named: "a"),
                 .selfClosedElement(named: "b")
             ])
         )
 
-        assertEqualXMLContent(xml, "<parent><a/><b/></parent>")
+        await assertEqualXMLContent(xml, "<parent><a/><b/></parent>")
     }
 }

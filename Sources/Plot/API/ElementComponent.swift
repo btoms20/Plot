@@ -18,7 +18,7 @@ public struct ElementComponent<Definition: ElementDefinition>: ComponentContaine
         self.content = content
     }
 
-    public var body: Component {
-        Definition.wrapper(.component(content()))
+    public func body() async -> Component {
+        await Definition.wrapper(.component(content()))
     }
 }

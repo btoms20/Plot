@@ -15,15 +15,19 @@ public protocol NodeConvertible: Renderable {
     /// The context of the node that this type can be converted into.
     associatedtype Context
     /// Convert this instance into a renderable node. See `Node` for more info.
-    var node: Node<Context> { get }
+    func node() async -> Node<Context>
 }
 
 public extension NodeConvertible {
-    func render(indentedBy indentationKind: Indentation.Kind?) -> String {
-        Renderer.render(node, indentedBy: indentationKind)
+    func render(indentedBy indentationKind: Indentation.Kind?) async -> String {
+        await Renderer.render(node(), indentedBy: indentationKind)
     }
 }
 
 extension Array: Renderable, NodeConvertible where Element: NodeConvertible {
-    public var node: Node<Element.Context> { .group(map(\.node)) }
+    public func node() async -> Node<Element.Context> {
+        return await .group(
+            self.asyncMap { await $0.node() }
+        )
+    }
 }

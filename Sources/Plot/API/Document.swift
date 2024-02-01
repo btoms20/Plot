@@ -55,5 +55,5 @@ public extension Document {
 }
 
 extension Document: NodeConvertible {
-    public var node: Node<Format> { .document(self) }
+    public func node() async -> Node<Format> { await .document(self) }
 }

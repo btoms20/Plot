@@ -1,4 +1,4 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.9
 
 /**
 *  Plot
@@ -10,6 +10,9 @@ import PackageDescription
 
 let package = Package(
     name: "Plot",
+    platforms: [
+       .macOS(.v13)
+    ],
     products: [
         .library(
             name: "Plot",

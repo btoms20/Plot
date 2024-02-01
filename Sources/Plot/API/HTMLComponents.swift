@@ -9,15 +9,15 @@
 public extension Node where Context == HTML.HeadContext {
     /// Declare that the HTML page is encoded using a certain encoding.
     /// - parameter encoding: The encoding to declare. See `DocumentEncoding`.
-    static func encoding(_ encoding: DocumentEncoding) -> Node {
-        .meta(.charset(encoding))
+    static func encoding(_ encoding: DocumentEncoding) async -> Node {
+        await .meta(.charset(encoding))
     }
 
     /// Link the HTML page to an external CSS stylesheet.
     /// - parameter url: The URL of the stylesheet to link to.
     /// - parameter integrity: optional base64-encoded cryptographic hash
-    static func stylesheet(_ url: URLRepresentable, integrity: String? = nil) -> Node {
-        .link(
+    static func stylesheet(_ url: URLRepresentable, integrity: String? = nil) async -> Node {
+        await .link(
             .rel(.stylesheet),
             .href(url.string),
             .type("text/css"),
@@ -27,10 +27,10 @@ public extension Node where Context == HTML.HeadContext {
 
     /// Declare the HTML page's canonical URL, for social sharing and SEO.
     /// - parameter url: The URL to declare as this document's canonical URL.
-    static func url(_ url: URLRepresentable) -> Node {
+    static func url(_ url: URLRepresentable) async -> Node {
         let url = url.string
 
-        return .group([
+        return await .group([
             .link(.rel(.canonical), .href(url)),
             .meta(.name("twitter:url"), .content(url)),
             .meta(.property("og:url"), .content(url))
@@ -39,14 +39,14 @@ public extension Node where Context == HTML.HeadContext {
 
     /// Declare the name of the site that this HTML page belongs to.
     /// - parameter name: The name to declare.
-    static func siteName(_ name: String) -> Node {
-        .meta(.property("og:site_name"), .content(name))
+    static func siteName(_ name: String) async -> Node {
+        await .meta(.property("og:site_name"), .content(name))
     }
 
     /// Declare the HTML page's title, both for browsers and for social sharing.
     /// - parameter title: The title to declare.
-    static func title(_ title: String) -> Node {
-        .group([
+    static func title(_ title: String) async -> Node {
+        await .group([
             .element(named: "title", text: title),
             .meta(.name("twitter:title"), .content(title)),
             .meta(.property("og:title"), .content(title))
@@ -55,8 +55,8 @@ public extension Node where Context == HTML.HeadContext {
 
     /// Declare a description of the HTML page, for social sharing and SEO.
     /// - parameter text: A text that describes the page's content.
-    static func description(_ text: String) -> Node {
-        .group([
+    static func description(_ text: String) async -> Node {
+        await .group([
             .meta(.name("description"), .content(text)),
             .meta(.name("twitter:description"), .content(text)),
             .meta(.property("og:description"), .content(text))
@@ -66,10 +66,10 @@ public extension Node where Context == HTML.HeadContext {
     /// Declare a URL to an image that should be displayed when the HTML page
     /// is shared on a social media website or app.
     /// - parameter url: The URL to declare. Should be an absolute URL.
-    static func socialImageLink(_ url: URLRepresentable) -> Node {
+    static func socialImageLink(_ url: URLRepresentable) async -> Node {
         let url = url.string
 
-        return .group([
+        return await .group([
             .meta(.name("twitter:image"), .content(url)),
             .meta(.property("og:image"), .content(url))
         ])
@@ -78,14 +78,14 @@ public extension Node where Context == HTML.HeadContext {
     /// Declare which card type that Twitter should use when displaying a link
     /// to this HTML page. See `TwitterCardType` for more details.
     /// - parameter type: The type of Twitter card to use for this page.
-    static func twitterCardType(_ type: TwitterCardType) -> Node {
-        .meta(.name("twitter:card"), .content(type.rawValue))
+    static func twitterCardType(_ type: TwitterCardType) async -> Node {
+        await .meta(.name("twitter:card"), .content(type.rawValue))
     }
     
     /// Declare the Twitter handle of the site that Twitter should use when displaying a link
     /// - parameter handle: The handle of the account on Twitter. For example: `@SwiftBySundell`
-    static func twitterUsername(_ username: String) -> Node {
-        .meta(.name("twitter:site"), .content(username))
+    static func twitterUsername(_ username: String) async -> Node {
+        await .meta(.name("twitter:site"), .content(username))
     }
 
 
@@ -99,28 +99,28 @@ public extension Node where Context == HTML.HeadContext {
     ///   to the screen’s safe area insets. See `HTMLViewportFitMode`.
     static func viewport(_ widthMode: HTMLViewportWidthMode,
                          initialScale: Double = 1,
-                         fit: HTMLViewportFitMode? = nil) -> Node {
+                         fit: HTMLViewportFitMode? = nil) async -> Node {
         var content = "width=\(widthMode.string), initial-scale=\(initialScale)"
         if let fit = fit {
             content += ", viewport-fit=\(fit.rawValue)"
         }
-        return .meta(.name("viewport"), .content(content))
+        return await .meta(.name("viewport"), .content(content))
     }
 
     /// Declare a "favicon" (a small icon typically displayed along the website's
     /// title in various browser UIs) for the HTML page.
     /// - parameter url: The favicon's URL.
     /// - parameter type: The MIME type of the image (default: "image/png").
-    static func favicon(_ url: URLRepresentable, type: String = "image/png") -> Node {
-        .link(.rel(.shortcutIcon), .href(url.string), .type(type))
+    static func favicon(_ url: URLRepresentable, type: String = "image/png") async -> Node {
+        await .link(.rel(.shortcutIcon), .href(url.string), .type(type))
     }
 
     /// Declare a url to an RSS feed to associate with this HTML page.
     /// - parameter url: The URL to the RSS feed.
     /// - parameter title: An optional title that some RSS readers will display
     ///   for the feed.
-    static func rssFeedLink(_ url: URLRepresentable, title: String? = nil) -> Node {
-        .link(
+    static func rssFeedLink(_ url: URLRepresentable, title: String? = nil) async -> Node {
+        await .link(
             .rel(.alternate),
             .href(url.string),
             .type("application/rss+xml"),
@@ -299,11 +299,11 @@ public struct AudioPlayer: Component {
         self.init(sources: [source], showControls: showControls)
     }
 
-    public var body: Component {
-        Node.audio(
+    public func body() async -> Component {
+        await Node.audio(
             .controls(showControls),
-            .forEach(sources) { source in
-                .source(.type(source.format), .src(source.url))
+            .asyncForEach(sources) { source in
+                await .source(.type(source.format), .src(source.url))
             }
         )
     }
@@ -343,8 +343,8 @@ public struct Form: Component {
         self.content = content
     }
 
-    public var body: Component {
-        Node.form(
+    public func body() async -> Component {
+        await Node.form(
             .action(url),
             .unwrap(method, Node.method),
             .unwrap(contentType, Node.enctype),
@@ -383,8 +383,8 @@ public struct IFrame: Component {
         self.enabledFeatureNames = enabledFeatureNames
     }
 
-    public var body: Component {
-        Node.iframe(
+    public func body() async -> Component {
+        await Node.iframe(
             .src(url),
             .frameborder(addBorder),
             .allowfullscreen(allowFullScreen),
@@ -418,8 +418,8 @@ public struct Image: Component {
         self.init(url: url, description: "")
     }
 
-    public var body: Component {
-        Node<HTML.BodyContext>.img(.src(url), .alt(description))
+    public func body() async -> Component {
+        await Node<HTML.BodyContext>.img(.src(url), .alt(description))
     }
 }
 
@@ -474,8 +474,8 @@ public struct Input: InputComponent {
         self.placeholder = placeholder
     }
 
-    public var body: Component {
-        Node.input(
+    public func body() async -> Component {
+        await Node.input(
             .type(type),
             .unwrap(name, Attribute.name),
             .unwrap(value, Attribute.value),
@@ -514,8 +514,8 @@ public struct Label: Component {
         self.init(Text(text), content: content)
     }
 
-    public var body: Component {
-        Node.label(.component(text), .component(content()))
+    public func body() async -> Component {
+        await Node.label(.component(text), .component(content()))
     }
 }
 
@@ -551,8 +551,8 @@ public struct Link: Component {
         }
     }
 
-    public var body: Component {
-        Node.a(
+    public func body() async -> Component {
+        await Node.a(
             .href(url),
             .unwrap(relationship, Node.rel),
             .unwrap(target, Node.target),
@@ -573,7 +573,7 @@ public struct List<Items: Sequence>: Component {
     /// The items that the list should render.
     public var items: Items
     /// A closure that transforms the list's items into renderable components.
-    public var content: (Items.Element) -> Component
+    public var content: (Items.Element) async -> Component
 
     @EnvironmentValue(.listStyle) private var style
 
@@ -582,29 +582,29 @@ public struct List<Items: Sequence>: Component {
     ///   - items: The items that the list should render.
     ///   - content: A closure that transforms the list's items into renderable components.
     public init(_ items: Items,
-                content: @escaping (Items.Element) -> Component) {
+                content: @escaping (Items.Element) async -> Component) async {
         self.items = items
         self.content = content
     }
 
     /// Create a new list that renders a sequence of strings, each as its own item.
     /// - parameter items: The strings that the list should render.
-    public init(_ items: Items) where Items.Element == String {
-        self.init(items) { Text($0) }
+    public init(_ items: Items) async where Items.Element == String {
+        await self.init(items) { Text($0) }
     }
 
-    public var body: Component {
-        Element(name: style.elementName) {
+    public func body() async -> Component {
+        await Element(name: style.elementName) {
             for item in items {
-                style.itemWrapper(content(item))
+                await style.itemWrapper(content(item))
             }
         }
     }
 }
 
 extension List: ComponentContainer where Items == ComponentGroup {
-    public init(@ComponentBuilder content: @escaping ContentProvider) {
-        self.init(content()) { $0 }
+    public init(@ComponentBuilder content: @escaping ContentProvider) async {
+        await self.init(content()) { $0 }
     }
 }
 
@@ -631,7 +631,7 @@ public struct SubmitButton: Component {
         self.init(title: title)
     }
 
-    public var body: Component {
+    public func body() async -> Component {
         Input(type: .submit, name: name, value: title)
     }
 }
@@ -673,23 +673,23 @@ public struct Table: Component {
         self.rows = rows
     }
 
-    public var body: Component {
+    public func body() async -> Component {
         let rowWrapper = shouldWrapRowsInTableBody ? Node.tbody : Node.group
 
-        return Node.table(
+        return await Node.table(
             .unwrap(caption, Node.component),
             .unwrap(header) {
-                .thead($0.convertToHeaderNode())
+                await .thead($0.convertToHeaderNode())
             },
-            rowWrapper(.forEach(rows()) { row in
-                row.wrapped(using: ElementWrapper(
+            rowWrapper(.asyncForEach(rows()) { row in
+                await row.wrapped(using: ElementWrapper(
                     wrappingElementName: "tr",
                     body: TableRow.init
                 ))
                 .convertToNode()
             }),
             .unwrap(footer) {
-                .tfoot(.component($0))
+                await .tfoot(.component($0))
             }
         )
     }
@@ -717,24 +717,24 @@ public struct TableRow: ComponentContainer {
         self.content = content
     }
 
-    public var body: Component {
-        Node.tr(.forEach(content()) {
-            .component(wrap($0))
+    public func body() async -> Component {
+        await Node.tr(.asyncForEach(content()) {
+            await .component(wrap($0))
         })
     }
 
-    fileprivate func convertToHeaderNode() -> Node<HTML.TableContext> {
+    fileprivate func convertToHeaderNode() async -> Node<HTML.TableContext> {
         var row = self
         row.isHeader = true
-        return row.convertToNode()
+        return await row.convertToNode()
     }
 
-    private func wrap(_ component: Component) -> Component {
+    private func wrap(_ component: Component) async -> Component {
         if isHeader {
-            return component.wrappedInElement(named: "th")
+            return await component.wrappedInElement(named: "th")
         }
 
-        return component.wrappedInElement(named: "td")
+        return await component.wrappedInElement(named: "td")
     }
 }
 
@@ -748,7 +748,7 @@ public struct Text: Component {
         Text(node: .group(lhs.node, rhs.node))
     }
 
-    public var body: Component { node }
+    public func body() async -> Component { node }
     private var node: Node<HTML.BodyContext>
 
     /// Initialize a `Text` instance using a string
@@ -817,7 +817,7 @@ public struct TextField: InputComponent {
         self.isRequired = isRequired
     }
 
-    public var body: Component {
+    public func body() async -> Component {
         Input(
             type: .text,
             name: name,
@@ -868,7 +868,7 @@ public struct TextArea: InputComponent {
         self.isRequired = isRequired
     }
 
-    public var body: Component {
+    public func body() async -> Component {
         Node.textarea(
             .text(text),
             .unwrap(name, Node.name),
@@ -897,8 +897,8 @@ public struct Time: Component {
         self.content = content
     }
     
-    public var body: Component {
-        Node.time(
+    public func body() async -> Component {
+        await Node.time(
             .unwrap(datetime, Node.datetime),
             .component(content())
         )

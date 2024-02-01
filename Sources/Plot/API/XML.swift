@@ -16,8 +16,8 @@ public struct XML: DocumentFormat {
     /// `.element()` APIs, or by creating your own context-bound
     /// components by extending the `Node` type.
     /// - parameter nodes: The root nodes of the document.
-    public init(_ nodes: Node<XML.DocumentContext>...) {
-        document = Document(elements: [
+    public init(_ nodes: Node<XML.DocumentContext>...) async {
+        document = await Document(elements: [
             .xml(.version(1.0), .encoding(.utf8)),
             Element(name: "", nodes: nodes)
         ])
@@ -25,7 +25,7 @@ public struct XML: DocumentFormat {
 }
 
 extension XML: NodeConvertible {
-    public var node: Node<Self> { document.node }
+    public func node() async -> Node<Self> { await document.node() }
 }
 
 public extension XML {

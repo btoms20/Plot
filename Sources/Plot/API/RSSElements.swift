@@ -59,8 +59,8 @@ public extension Node where Context: RSSChannelContext {
     /// Associate an Atom feed link with this feed.
     /// - parameter href: The link of the atom feed (usually the same URL as
     ///   the feed's own).
-    static func atomLink(_ href: URLRepresentable) -> Node {
-        .selfClosedElement(named: "atom:link", attributes: [
+    static func atomLink(_ href: URLRepresentable) async -> Node {
+        await .selfClosedElement(named: "atom:link", attributes: [
             .any(name: "href", value: href.string),
             .any(name: "rel", value: "self"),
             .any(name: "type", value: "application/rss+xml")
@@ -85,16 +85,16 @@ public extension Node where Context: RSSItemContext {
 
     /// Assign an HTML string as this item's content.
     /// - parameter html: The HTML to assign.
-    static func content(_ html: String) -> Node {
-        .element(named: "content:encoded",
+    static func content(_ html: String) async -> Node {
+        await .element(named: "content:encoded",
                  nodes: [Node.raw("<![CDATA[\(html)]]>")])
     }
 
     /// Assign this item's HTML content using Plot's DSL.
     /// - parameter nodes: The HTML nodes to assign. Will be rendered
     ///   into a string without any indentation.
-    static func content(_ nodes: Node<HTML.BodyContext>...) -> Node {
-        .content(nodes.render())
+    static func content(_ nodes: Node<HTML.BodyContext>...) async -> Node {
+        await .content(nodes.render())
     }
 }
 
@@ -117,8 +117,8 @@ public extension Node where Context: RSSContentContext {
 
     /// Define a description for the content as CDATA encoded HTML.
     /// - parameter nodes: The HTML nodes to render as a description.
-    static func description(_ nodes: Node<HTML.BodyContext>...) -> Node {
-        .element(named: "description", nodes: [Node.raw("<![CDATA[\(nodes.render())]]>")])
+    static func description(_ nodes: Node<HTML.BodyContext>...) async -> Node {
+        await .element(named: "description", nodes: [Node.raw("<![CDATA[\(nodes.render())]]>")])
     }
 
     /// Define the content's canonical URL.

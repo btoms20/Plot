@@ -9,7 +9,7 @@ import Foundation
 internal struct ElementWrapper {
     var wrappingElementName: String
     var deferredAttributes = [AnyAttribute]()
-    var body: (Component) -> Component
+    var body: (Component) async -> Component
 }
 
 extension ElementWrapper {
@@ -17,7 +17,7 @@ extension ElementWrapper {
         self.wrappingElementName = wrappingElementName
         self.body = {
             Element(name: wrappingElementName, nodes: [
-                Node<Any>.component($0)
+                await Node<Any>.component($0)
             ])
         }
     }
